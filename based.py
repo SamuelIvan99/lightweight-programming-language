@@ -33,7 +33,7 @@ stack = SymbolStack()
 
 class BasedLexer(Lexer):
     # Tokens
-    tokens = {ITYPE, UTYPE, CHARTYPE, NAME, NUMBER, LBRACE, RBRACE, ASSIGN, END}
+    tokens = {ITYPE, UTYPE, CHARTYPE, ID, NUMBER, LBRACE, RBRACE, ASSIGN, END}
 
     # Ints
     ITYPE  = r"i64|i32|i16|i8|isize"
@@ -75,21 +75,21 @@ class BasedLexer(Lexer):
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
 
-    @_("declaration")
-    def stat(self, p):
+    # @_("declaration")
+    # def stat(self, p):
 
-    @_("")
-    def statements(self, p):
+    # @_("")
+    # def statements(self, p):
 
-    @_("LBRACE new_scope statements RBRACE")
-    def statements(self, p):
-        stack.exit()
+    # @_("LBRACE new_scope statements RBRACE")
+    # def statements(self, p):
+    #     stack.exit()
 
-    @_("")
-    def new_scope(self, p):
-        stack.enter()
+    # @_("")
+    # def new_scope(self, p):
+    #     stack.enter()
 
-    @_('ITYPE NAME ASSIGN NUMBER END')
+    @_('ITYPE ID ASSIGN NUMBER END')
     def declaration(self, p):
         if p.ITYPE == "i64":
             type = "long long int"
@@ -102,14 +102,14 @@ class BasedParser(Parser):
         elif p.ITYPE == "isize": 
             type = "size_t" # I don't think size_t is signed
 
-        if stack.lookup(p.NAME):
+        if stack.lookup(p.ID):
             print()
-        stack.bind(p.NAME, type, p.NUMBER)
+        stack.bind(p.ID, type, p.NUMBER)
 
-        return f"{type} {p.NAME} = {p.NUMBER};"
+        return f"{type} {p.ID} = {p.NUMBER};"
 
 
-    @_('UTYPE NAME ASSIGN NUMBER END')
+    @_('UTYPE ID ASSIGN NUMBER END')
     def declaration(self, p):
         if p.UTYPE == "u64":
             type = "unsigned long long int"
@@ -122,11 +122,11 @@ class BasedParser(Parser):
         elif p.UTYPE == "usize":
             type = "size_t"
 
-        if stack.lookup(p.NAME):
+        if stack.lookup(p.ID):
             print()
-        stack.bind(p.NAME, type, p.NUMBER)
+        stack.bind(p.ID, type, p.NUMBER)
 
-        return f"{type} {p.NAME} = {p.NUMBER};"
+        return f"{type} {p.ID} = {p.NUMBER};"
 
     def __init__(self):
         pass
