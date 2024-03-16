@@ -1,20 +1,26 @@
-Empty = -- epsilon
-Digit = "0" .. "9"
-Lower = "a" .. "z"
-Upper = "A" .. "Z"
-Alpha = Lower | Upper
-AlphaNum = Alpha | Digit
+```
+INT_TYPE      : i64 | i32 | i16 | i8 | isize
+UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
+FLOAT_TYPE    : f64 | f32
+BOOL_TYPE     : bool
+CHAR_TYPE     : char
+type          : INT_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-IType = "i64" | "i32" | "i16" | "i8" | "isize"
-UType = "u64" | "u32" | "u16" | "u8" | "usize"
-Type = IType | UType | "char"
+INT       : -?\d+
+FLOAT     : -?\d+(\.\d+)?
+BOOL      : true | false
+CHAR      : \".*\"
+primitive : INT | FLOAT | BOOL | CHAR
 
-Declare = Type "" Var "" "=" "" Val
+ID : [a-zA-Z_][a-zA-Z0-9_\-]*
 
-Var = VarFirst VarRest*
-VarFirst = Alpha | "_"
-VarRest = AlphaNum | "_" | "-"
+ASSIGN : =
+END    : ;
 
-Val = Digit+
+program     : statements
+statements  : statement END statements | Ɛ
+statement   : declaration | Ɛ
+declaration : type ID initializer
+initializer : ASSIGN primitive | Ɛ
 
-Start = Declare ";"
+```
