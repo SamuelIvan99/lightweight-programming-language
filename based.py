@@ -33,103 +33,127 @@ stack = SymbolStack()
 
 class BasedLexer(Lexer):
     # Tokens
-    tokens = {ITYPE, UTYPE, CHARTYPE, ID, NUMBER, LBRACE, RBRACE, ASSIGN, END}
+    tokens = { ITYPE, UTYPE, FTYPE, BTYPE, CTYPE,
+               IPRIM, FPRIM, BPRIM, CPRIM, ID,
+               ASS, END, SPACE }
 
-    # Ints
-    ITYPE  = r"i64|i32|i16|i8|isize"
-    UTYPE  = r"u64|u32|u16|u8|usize"
-    # Chars
-    CHARTYPE = "char"
-    # Floats
-    # Int Constants
-    NUMBER = r"\d+"
-    # Variable Identifier
-    ID     = f"[a-zA-Z_][a-zA-Z0-9_\-]*"
-    # Punctuators
-    LBRACE = "{"
-    RBRACE = "}"
-    # Arithmetics
-    # Assignment
-    ASSIGN = "="
-    # Terminator
-    END    = ";"
+    ITYPE = r"i64|i32|i16|i8|isize"
+    UTYPE = r"u64|u32|u16|u8|usize"
+    FTYPE = r"f32|f64"
+    BTYPE = r"bool"
+    CTYPE = r"char"
 
-    # literals
+
+    IPRIM = r"-?\d+"
+    FPRIM = r"-?\d+(\.\d+)?"
+    BPRIM = r"true|false"
+    CPRIM = r"\".\""
+
+    ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
+
+    ASS = r"="
+    END = r";"
+    SPACE = r"\s"
+
     literals = {}
 
-    # Ignoring whitespace
     ignore = " \t"
-
-    # Ignoring comments
+    ignore_newline = r"\n+"
     # ignore_comment = r""
-
-    # Ignoring newline
-    @_(r"\n+")
-    def ignore_newline(self, t):
-        self.lineno += t.value.count("\n")
-
-    def error(self, t):
-        print("Line %d: Bad character %r" % (self.lineno, t.value[0]))
-        self.index += 1
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
 
-    # @_("declaration")
-    # def stat(self, p):
+    # @_("type SPACE ID blank ASS blank prim END")
+    @_("type ID ASS prim END")
+    def declaration(self, p):
+        print(p.type)
+        print(p.SPACE)
+        print(p.ID)
+        print(p.blank)
+        print(p.ASS)
+        print(p.blank)
+        print(p.prim)
+        print(p.END)
+
+    @_("IPRIM")
+    def prim(self, p):
+        return p.IPRIM
+    @_("FPRIM")
+    def prim(self, p):
+        return p.FPRIM
+    @_("BPRIM")
+    def prim(self, p):
+        return p.BPRIM
+    @_("CPRIM")
+    def prim(self, p):
+        return p.CPRIM
+
+    @_("ITYPE")
+    def type(self, p):
+        return p.ITYPE
+    @_("UTYPE")
+    def type(self, p):
+        return p.UTYPE
+    @_("FTYPE")
+    def type(self, p):
+        return p.FTYPE
+    @_("BTYPE")
+    def type(self, p):
+        return p.BTYPE
+    @_("CTYPE")
+    def type(self, p):
+        return p.CTYPE
+
+    # @_("SPACE")
+    # def blank(self, p):
+    #     return p.SPACE
+    # @_("epsilon")
+    # def blank(self, p):
+    #     return p.epsilon
 
     # @_("")
-    # def statements(self, p):
+    # def epsilon(self, p):
+    #     pass
 
-    # @_("LBRACE new_scope statements RBRACE")
-    # def statements(self, p):
-    #     stack.exit()
+    # @_('ITYPE Id ASSER END')
+    # def declaration(self, p):
+    #     if p.ITYPE == "i64":
+    #         type = "long long int"
+    #     elif p.ITYPE == "i32":
+    #         type = "long int"
+    #     elif p.ITYPE == "i16":
+    #         type = "int"
+    #     elif p.ITYPE == "i8":
+    #         type = "char"
+    #     elif p.ITYPE == "isize": 
+    #         type = "size_t" # I don't think size_t is signed
 
-    # @_("")
-    # def new_scope(self, p):
-    #     stack.enter()
+    #     if stack.lookup(p.Id):
+    #         print()
+    #     stack.bind(p.Id, type, p.NUMBER)
 
-    @_('ITYPE ID ASSIGN NUMBER END')
-    def declaration(self, p):
-        if p.ITYPE == "i64":
-            type = "long long int"
-        elif p.ITYPE == "i32":
-            type = "long int"
-        elif p.ITYPE == "i16":
-            type = "int"
-        elif p.ITYPE == "i8":
-            type = "char"
-        elif p.ITYPE == "isize": 
-            type = "size_t" # I don't think size_t is signed
-
-        if stack.lookup(p.ID):
-            print()
-        stack.bind(p.ID, type, p.NUMBER)
-
-        return f"{type} {p.ID} = {p.NUMBER};"
+    #     return f"{type} {p.Id} = {p.NUMBER};"
 
 
-    @_('UTYPE ID ASSIGN NUMBER END')
-    def declaration(self, p):
-        if p.UTYPE == "u64":
-            type = "unsigned long long int"
-        elif p.UTYPE == "u32":
-            type = "unsigned long int"
-        elif p.UTYPE == "u16":
-            type = "unsigned int"
-        elif p.UTYPE == "u8":
-            type = "unsigned char"
-        elif p.UTYPE == "usize":
-            type = "size_t"
+    # @_('UTYPE Id ASSER END')
+    # def declaration(self, p):
+    #     if p.UTYPE == "u64":
+    #         type = "unsigned long long int"
+    #     elif p.UTYPE == "u32":
+    #         type = "unsigned long int"
+    #     elif p.UTYPE == "u16":
+    #         type = "unsigned int"
+    #     elif p.UTYPE == "u8":
+    #         type = "unsigned char"
+    #     elif p.UTYPE == "usize":
+    #         type = "size_t"
 
-        if stack.lookup(p.ID):
-            print()
-        stack.bind(p.ID, type, p.NUMBER)
+    #     if stack.lookup(p.Id):
+    #         print()
+    #     stack.bind(p.Id, type, p.NUMBER)
 
-        return f"{type} {p.ID} = {p.NUMBER};"
-
-    def __init__(self):
-        pass
+    #     return f"{type} {p.Id} = {p.NUMBER};"
 
 def main():
     if not os.path.exists("dist"):
@@ -146,11 +170,14 @@ def main():
 
     while True:
         line = program.readline()
+        # print(line)
         if not line:
             break
+
         tokens = lexer.tokenize(line)
         result = parser.parse(tokens)
-        compiled.write("\t" + result + "\n")
+        print(result)
+        # compiled.write("\t" + result + "\n")
 
     compiled.write("\treturn 0;\n")
     compiled.write("}\n")

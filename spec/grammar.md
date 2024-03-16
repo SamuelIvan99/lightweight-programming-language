@@ -1,20 +1,20 @@
-Empty = -- epsilon
-Digit = "0" .. "9"
-Lower = "a" .. "z"
-Upper = "A" .. "Z"
-Alpha = Lower | Upper
-AlphaNum = Alpha | Digit
+IType = i64|i32|i16|i8|isize
+UType = u64|u32|u16|u8|usize
+FType = f32|f64
+BType = bool
+CType = char
+Type  = IType|UType|FType|BType|CType
+Ass   = =
+End   = ;
+Space = \s
+Blank = Space|ε
 
-IType = "i64" | "i32" | "i16" | "i8" | "isize"
-UType = "u64" | "u32" | "u16" | "u8" | "usize"
-Type = IType | UType | "char"
+IPrim  = -?\d+
+FPrim  = -?\d+(\.\d+)?
+BPrim  = true|false
+CPrim  = "."
+Prim   = IPrim|UPrim|FPrim|BPrim|CPrim
 
-Declare = Type "" Var "" "=" "" Val
+Id = [a-zA-Z_][a-zA-Z0-9_\-]*
 
-Var = VarFirst VarRest*
-VarFirst = Alpha | "_"
-VarRest = AlphaNum | "_" | "-"
-
-Val = Digit+
-
-Start = Declare ";"
+Declaration = Type Whitespace Id Ass Prim
