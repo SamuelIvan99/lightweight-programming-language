@@ -1,38 +1,7 @@
 from sly import Lexer, Parser
 import os
 
-class SymbolStack():
-    def __init__(self):
-        self._stack = []
-
-    def empty(self):
-        pass
-
-    def bind(self, name, type, value):
-        self._stack.append(
-            (name, type, value)
-        )
-
-    def lookup(self, name):
-        for n, type, value in self._stack:
-            if n == name:
-                return True
-        return False
-
-    def enter(self):
-        self._stack.append("#")
-
-    def exit(self):
-        for item in self._stack:
-            if item == "#":
-                self._stack.pop(len(self._stack) - 1)
-                break
-            self._stack.pop(len(self._stack) - 1)
-
-stack = SymbolStack()
-
 class BasedLexer(Lexer):
-    # Tokens
     tokens = { INT_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INT, FLOAT, BOOL, CHAR, ID,
                ASSIGN, END }
