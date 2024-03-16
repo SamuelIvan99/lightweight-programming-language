@@ -1,24 +1,26 @@
-ITYPE = i64|i32|i16|i8|isize
-UTYPE = u64|u32|u16|u8|usize
-FTYPE = f64|f32
-BTYPE = bool
-CTYPE = char
-TYPE  = ITYPE|UTYPE|FTYPE|BTYPE|CYPET
+```
+INT_TYPE      : i64 | i32 | i16 | i8 | isize
+UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
+FLOAT_TYPE    : f64 | f32
+BOOL_TYPE     : bool
+CHAR_TYPE     : char
+type          : INT_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-IPRIM  = -?\d+
-FPRIM  = -?\d+(\.\d+)?
-BPRIM  = true|false
-CPRIM  = "."
-PRIM   = IPRIM|UPRIM|FPRIM|BPRIM|CRIMP
+INT       : -?\d+
+FLOAT     : -?\d+(\.\d+)?
+BOOL      : true | false
+CHAR      : \".*\"
+primitive : INT | FLOAT | BOOL | CHAR
 
-ID = [a-zA-Z_][a-zA-Z0-9_\-]*
+ID : [a-zA-Z_][a-zA-Z0-9_\-]*
 
-ASS    = =
-END    = ;
-SPACES = \s+
-BLANK  = SPACES|ε
+ASSIGN : =
+END    : ;
 
-DECLARE = TYPE SPACES ID BLANK ASS BLANK PRIM
+program     : statements
+statements  : statement END statements | Ɛ
+statement   : declaration | Ɛ
+declaration : type ID initializer
+initializer : ASSIGN primitive | Ɛ
 
-Stat = Stat ; Stat
-Stat = DECLARE|ε
+```

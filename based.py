@@ -33,30 +33,33 @@ stack = SymbolStack()
 
 class BasedLexer(Lexer):
     # Tokens
-    tokens = { ITYPE, UTYPE, FTYPE, BTYPE, CTYPE,
-               IPRIM, FPRIM, BPRIM, CPRIM, ID,
-               ASS, END }
+    tokens = { INT_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
+               INT, FLOAT, BOOL, CHAR, ID,
+               ASSIGN, END }
 
-    ITYPE = r"i64|i32|i16|i8|isize"
-    UTYPE = r"u64|u32|u16|u8|usize"
-    FTYPE = r"f64|f32"
-    BTYPE = r"bool"
-    CTYPE = r"char"
+    INT_TYPE      = r"i64|i32|i16|i8|isize"
+    UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
+    FLOAT_TYPE    = r"f64|f32"
+    BOOL_TYPE     = r"bool"
+    CHAR_TYPE     = r"char"
 
-    IPRIM = r"-?\d+"
-    FPRIM = r"-?\d+(\.\d+)?"
-    BPRIM = r"true|false"
-    CPRIM = r'".*"'
+    FLOAT = r"-?\d+(\.\d+)?"
+    INT   = r"-?\d+"
+    BOOL  = r"true|false"
+    CHAR  = r'"."'
 
     ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
 
-    ASS = r"="
-    END = r";"
+    ASSIGN = r"="
+    END    = r";"
 
     literals = {}
 
     ignore = " \t"
-    ignore_newline = r"\n+"
+    @_(r"\n+")
+    def ignore_newline(self, t):
+        pass
+
     ignore_comment = r"#.*"
 
 class BasedParser(Parser):
@@ -65,114 +68,105 @@ class BasedParser(Parser):
     @_("statements")
     def program(self, p):
         return p.statements
-    @_("statements END statement")
+
+    @_("statement END statements")
     def statements(self, p):
         return f"{p.statement}{p.END}{p.statements}"
-    @_("statement END")
+    @_("")
     def statements(self, p):
-        return f"{p.statement}{p.END}"
-    @_("type ID ASS prim")
+        return ""
+
+    @_("declaration")
     def statement(self, p):
-        return f"{p.type} {p.ID} {p.ASS} {p.prim}"
+        return p.declaration
     @_("")
     def statement(self, p):
         return ""
 
-    @_("ITYPE")
+    @_("type ID initializer")
+    def declaration(self, p):
+        return f"{p.type} {p.ID} {p.initializer}"
+
+    @_("ASSIGN primitive")
+    def initializer(self, p):
+        return f"{p.ASSIGN} {p.primitive}"
+    @_("")
+    def initializer(self, p):
+        return ""
+
+    @_("INT_TYPE")
     def type(self, p):
-        if p.ITYPE == "i64":
+        if p.INT_TYPE == "i64":
             type = "long long int"
-        elif p.ITYPE == "i32":
+        elif p.INT_TYPE == "i32":
             type = "long int"
-        elif p.ITYPE == "i16":
+        elif p.INT_TYPE == "i16":
             type = "int"
-        elif p.ITYPE == "i8":
+        elif p.INT_TYPE == "i8":
             type = "char"
-        elif p.ITYPE == "isize": 
+        elif p.INT_TYPE == "isize": 
             type = "size_t" # I don't think size_t is signed
         return type
-    @_("UTYPE")
+    @_("UNSIGNED_TYPE")
     def type(self, p):
-        if p.UTYPE == "u64":
+        if p.UNSIGNED_TYPE == "u64":
             type = "unsigned long long int"
-        elif p.UTYPE == "u32":
+        elif p.UNSIGNED_TYPE == "u32":
             type = "unsigned long int"
-        elif p.UTYPE == "u16":
+        elif p.UNSIGNED_TYPE == "u16":
             type = "unsigned int"
-        elif p.UTYPE == "u8":
+        elif p.UNSIGNED_TYPE == "u8":
             type = "unsigned char"
-        elif p.UTYPE == "usize":
+        elif p.UNSIGNED_TYPE == "usize":
             type = "size_t"
         return type
-    @_("FTYPE")
+    @_("FLOAT_TYPE")
     def type(self, p):
-        if p.FTYPE == "f64":
+        if p.FLOAT_TYPE == "f64":
             type = "double"
-        elif p.FTYPE == "f32":
+        elif p.FLOAT_TYPE == "f32":
             type = "float"
         return type
-    @_("BTYPE")
+    @_("BOOL_TYPE")
     def type(self, p):
         return "char"
-    @_("CTYPE")
+    @_("CHAR_TYPE")
     def type(self, p):
         return "char"
 
-    @_("IPRIM")
-    def prim(self, p):
-        return p.IPRIM
-    @_("FPRIM")
-    def prim(self, p):
-        return p.FPRIM
-    @_("BPRIM")
-    def prim(self, p):
-        if p.BPRIM == "true":
+    @_("INT")
+    def primitive(self, p):
+        return p.INT
+    @_("FLOAT")
+    def primitive(self, p):
+        return p.FLOAT
+    @_("BOOL")
+    def primitive(self, p):
+        if p.BOOL == "true":
             value = "0x01"
-        elif p.BPRIM == "false":
+        elif p.BOOL == "false":
             value = "0x00"
         return value
-    @_("CPRIM")
-    def prim(self, p):
-        return p.CPRIM
-
-    # @_("SPACES")
-    # def blank(self, p):
-    #     return p.SPACES
-    # @_("")
-    # def blank(self, p):
-    #     return ""
+    @_("CHAR")
+    def primitive(self, p):
+        return p.CHAR
 
 def main():
     if not os.path.exists("dist"):
         os.mkdir("dist")
     if os.path.exists("dist/out.c"):
         os.remove("dist/out.c")
-    program = open("src.based", "r")
-    compiled = open("dist/out.c", "a")
 
     lexer = BasedLexer()
     parser = BasedParser()
 
-    compiled.write("int main() {\n")
-
-    with open("src.based") as f:
-        program = f.read()
+    with open("src.based") as based_file:
+        program = based_file.read()
         tokens = lexer.tokenize(program)
         result = parser.parse(tokens)
-        print(result)
 
-
-    # while True:
-    #     try:
-    #         line = program.readline()
-    #     except EOFError:
-    #         break
-    #     tokens = lexer.tokenize(line)
-    #     # compiled.write("\t" + result + "\n")
-
-    compiled.write("\treturn 0;\n")
-    compiled.write("}\n")
-    compiled.close()
+    with open("dist/out.c", "a") as c_file:
+        c_file.write(f"int main(){{{result}return 0;}}")
 
 if __name__ == '__main__':
     main()
