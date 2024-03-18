@@ -1,8 +1,5 @@
-i32 x = 9;
-x = 7;
-
-f32 y = 5.6;
-
-WHILE ST x != 5 EN {
+i32 x = 8;
+x = 8;
+while ( x != 5 AND x <= 10) {
     x = 5;
 };
