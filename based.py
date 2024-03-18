@@ -35,7 +35,7 @@ class BasedLexer(Lexer):
     literals = {}
 
     ignore = " \t"
-    
+
     @_(r"\n+")
     def ignore_newline(self, t):
         pass
@@ -187,10 +187,14 @@ class BasedParser(Parser):
         return p.primitive
 
 def main():
+# For transpiled C code
     if not os.path.exists("dist"):
         os.mkdir("dist")
     if os.path.exists("dist/out.c"):
         os.remove("dist/out.c")
+    # For compiled machine code
+    if not os.path.exists("bin"):
+        os.mkdir("bin")
 
     lexer = BasedLexer()
     parser = BasedParser()
@@ -208,5 +212,6 @@ f"""int main()
     return 0;
 }}
 """)
+    os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
