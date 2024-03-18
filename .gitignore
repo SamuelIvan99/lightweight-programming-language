@@ -2,3 +2,5 @@ dist
 poetry.lock
 pyproject.toml
 __pycache__
+venv/
+bin/
