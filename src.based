@@ -1,0 +1,11 @@
+i64 some_long_long_int = 123512351235;
+i8 some_byte = -255;
+
+u16 some_unsigned_int = 8979087;
+
+f32 some_float = 10.5;
+f64 some_double = -0.123545;
+
+char some_char = "0";
+
+bool some_bool = false;
