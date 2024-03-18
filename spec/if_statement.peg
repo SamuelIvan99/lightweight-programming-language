@@ -1,0 +1,20 @@
+if_statement : "if" LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
+else_statement : "else" LCURLYBRACE statements RCURLYBRACE | "else" if_statement
+
+expression : relational_expression
+relational_expression : additive_expression ((LT | GT | LTE | GTE) additive_expression)\*
+additive_expression : multiplicative_expression ((ADD | SUB) multiplicative_expression)\*
+multiplicative_expression : primary_expression ((MUL | DIV) primary_expression)\*
+primary_expression : primitive | ID | LBRACE expression RBRACE
+
+EQ : "=="
+NEQ : "!="
+LT : "<"
+GT : ">"
+LTE : "<="
+GTE : ">="
+
+ADD : "+"
+SUB : "-"
+DIV : "/"
+MUL : "\*"
