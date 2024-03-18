@@ -4,7 +4,7 @@ import os
 class BasedLexer(Lexer):
     tokens = { INT_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INT, FLOAT, BOOL, CHAR, ID,
-               ASSIGN, END }
+               ASSIGN, END , COMPARATOR, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE}
 
     INT_TYPE      = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -19,8 +19,15 @@ class BasedLexer(Lexer):
 
     ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
 
+    COMPARATOR = r"==|!=|<|>|<=|>="
     ASSIGN = r"="
     END    = r";"
+
+    LBRACE = r"ST"
+    RBRACE = r"EN"
+
+    LCURLYBRACE = r"{"
+    RCURLYBRACE = r"}"
 
     literals = {}
 
@@ -48,6 +55,15 @@ class BasedParser(Parser):
     @_("declaration")
     def statement(self, p):
         return p.declaration
+    
+    @_("var_assignment")
+    def statement(self, p):
+        return p.var_assignment
+    
+    @_("WHILE")
+    def statement(self,p):
+        return p.WHILE
+    
     @_("")
     def statement(self, p):
         return ""
@@ -120,6 +136,30 @@ class BasedParser(Parser):
     def primitive(self, p):
         return p.CHAR
 
+    @_("ID ASSIGN primitive")
+    def var_assignment(self,p):
+        return f"{p.ID}{p.ASSIGN}{p.primitive}"
+
+    @_("LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE")
+    def WHILE(self,p):
+        return f"{p.LBRACE}{p.conditions}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
+    
+    @_("term COMPARATOR conditions")
+    def conditions(self,p):
+        return f"{p.term}{p.COMPARATOR}{p.conditions}"
+    
+    @_("term")
+    def conditions(self,p):
+        return p.term
+    
+    @_("ID")
+    def term(self,p):
+        return p.ID
+    
+    @_("primitive")
+    def term(self,p):
+        return p.primitive
+
 def main():
     if not os.path.exists("dist"):
         os.mkdir("dist")
@@ -129,7 +169,7 @@ def main():
     lexer = BasedLexer()
     parser = BasedParser()
 
-    with open("src.based") as based_file:
+    with open("test.based") as based_file:
         program = based_file.read()
         tokens = lexer.tokenize(program)
         result = parser.parse(tokens)
