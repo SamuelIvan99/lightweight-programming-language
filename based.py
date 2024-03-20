@@ -1,22 +1,24 @@
+from variables import VariableStack
+
 from sly import Lexer, Parser
 import os
 
 class BasedLexer(Lexer):
-    tokens = { INT_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
-               INT, FLOAT, BOOL, CHAR, ID,
-               ASSIGN, END , COMPARATOR, LBRACE, RBRACE,
+    tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
+               INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID,
+               ASSIGN, END, COMPARATOR, LBRACE, RBRACE,
                LCURLYBRACE, RCURLYBRACE, LOGICAL_OPERATOR, WHILE_NAME}
 
-    INT_TYPE      = r"i64|i32|i16|i8|isize"
+    SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
     FLOAT_TYPE    = r"f64|f32"
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
 
-    FLOAT = r"-?\d+(\.\d+)?"
-    INT   = r"-?\d+"
-    BOOL  = r"true|false"
-    CHAR  = r'"."'
+    FLOAT_VALUE    = r"-?\d+\.\d+"
+    INTEGRAL_VALUE = r"-?\d+"
+    BOOL_VALUE     = r"true|false"
+    CHAR_VALUE     = r"\'.\'"
     LOGICAL_OPERATOR = r"AND|OR"
 
     WHILE_NAME = r"while"
@@ -42,6 +44,8 @@ class BasedLexer(Lexer):
 
     ignore_comment = r"#.*"
 
+bindings = VariableStack()
+
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
 
@@ -60,6 +64,10 @@ class BasedParser(Parser):
     @_("declaration")
     def statement(self, p):
         return p.declaration
+
+    @_("declaration_with_initialization")
+    def statement(self, p):
+        return p.declaration_with_initialization
     
     @_("var_assignment")
     def statement(self, p):
@@ -73,77 +81,91 @@ class BasedParser(Parser):
     def statement(self, p):
         return ""
 
-    @_("type ID initializer")
+    @_("type ID")
     def declaration(self, p):
-        return f"{p.type} {p.ID} {p.initializer}"
+        type_name, type_mapping = p.type
+        bindings.bind(p.ID, type, type_mapping["default"])
+        return f"{type_mapping['mapping']} {p.ID}"
 
-    @_("ASSIGN primitive")
-    def initializer(self, p):
-        return f"{p.ASSIGN} {p.primitive}"
-    @_("")
-    def initializer(self, p):
-        return ""
+    @_("type ID ASSIGN value")
+    def declaration_with_initialization(self, p):
+        name = p.ID
+        type_name, type_mapping = p.type
+        value = p.value
+        if value < type_mapping["min"] or value > type_mapping["max"]:
+            print(f"ERROR: overflow detected in {type_name} {name} {p.ASSIGN} {value}, assigned value must be in range [{type_mapping['min']},{type_mapping['max']}]")
+            exit(1)
+        bindings.bind(name, type_name, value)
+        return f"{type_mapping['mapping']} {name} {p.ASSIGN} {value}"
 
-    @_("INT_TYPE")
+    @_("SIGNED_TYPE")
     def type(self, p):
-        if p.INT_TYPE == "i64":
-            type = "long long int"
-        elif p.INT_TYPE == "i32":
-            type = "long int"
-        elif p.INT_TYPE == "i16":
-            type = "int"
-        elif p.INT_TYPE == "i8":
-            type = "char"
-        elif p.INT_TYPE == "isize": 
-            type = "size_t" # I don't think size_t is signed
-        return type
+        types_mapping = {
+            "i64": {"mapping": "long long int", "min": -(2**63 - 1), "max": 2**63 - 1, "default": 0},
+            "i32": {"mapping": "long int", "min": -(2**31 - 1), "max": 2**31 - 1, "default": 0},
+            "i16": {"mapping": "int", "min": -(2**15 - 1), "max": 2**15 - 1, "default": 0},
+            "i8": {"mapping": "char", "min": -(2**7 - 1), "max": 2**7 - 1, "default": 0}
+            # "isize": "size_t"
+        }
+        return (p.SIGNED_TYPE, types_mapping[p.SIGNED_TYPE])
+
     @_("UNSIGNED_TYPE")
     def type(self, p):
-        if p.UNSIGNED_TYPE == "u64":
-            type = "unsigned long long int"
-        elif p.UNSIGNED_TYPE == "u32":
-            type = "unsigned long int"
-        elif p.UNSIGNED_TYPE == "u16":
-            type = "unsigned int"
-        elif p.UNSIGNED_TYPE == "u8":
-            type = "unsigned char"
-        elif p.UNSIGNED_TYPE == "usize":
-            type = "size_t"
-        return type
+        types_mapping = {
+            "u64": {"mapping": "unsigned long long int", "min": 2**64 - 1, "max": 2**64 - 1, "default": 0},
+            "u32": {"mapping": "unsigned long int", "min": 2**32 - 1, "max": 2**63 - 1, "default": 0},
+            "u16": {"mapping": "unsigned int", "min": 2**16 - 1, "max": 2**16 - 1, "default": 0},
+            "u8": {"mapping": "unsigned char", "min": 2**7 - 1, "max": 2**7 - 1, "default": 0},
+            # "usize": "size_t"
+        }
+        return (p.UNSIGNED_TYPE, types_mapping[p.UNSIGNED_TYPE])
+
     @_("FLOAT_TYPE")
     def type(self, p):
-        if p.FLOAT_TYPE == "f64":
-            type = "double"
-        elif p.FLOAT_TYPE == "f32":
-            type = "float"
-        return type
-    @_("BOOL_TYPE")
-    def type(self, p):
-        return "char"
+        types_mapping = {
+            "f64": "double",
+            "f32": "float"
+        }
+        return (p.FLOAT_TYPE, types_mapping[p.FLOAT_TYPE])
+
     @_("CHAR_TYPE")
     def type(self, p):
-        return "char"
+        return (p.CHAR_TYPE, "char")
 
-    @_("INT")
-    def primitive(self, p):
-        return p.INT
-    @_("FLOAT")
-    def primitive(self, p):
-        return p.FLOAT
-    @_("BOOL")
-    def primitive(self, p):
-        if p.BOOL == "true":
-            value = "0x01"
-        elif p.BOOL == "false":
-            value = "0x00"
+    @_("BOOL_TYPE")
+    def type(self, p):
+        return (p.BOOL_TYPE, "char")
+
+    @_("INTEGRAL_VALUE")
+    def value(self, p):
+        return int(p.INTEGRAL_VALUE)
+
+    @_("FLOAT_VALUE")
+    def value(self, p):
+        return float(p.FLOAT_VALUE)
+
+    @_("BOOL_VALUE")
+    def value(self, p):
+        if p.BOOL_VALUE == "true":
+            value = 1
+        elif p.BOOL_VALUE == "false":
+            value = 0
         return value
-    @_("CHAR")
-    def primitive(self, p):
-        return p.CHAR
 
-    @_("ID ASSIGN primitive")
-    def var_assignment(self,p):
-        return f"{p.ID}{p.ASSIGN}{p.primitive}"
+    @_("CHAR_VALUE")
+    def value(self, p):
+        return p.CHAR_VALUE
+
+    @_("ID ASSIGN value")
+    def var_assignment(self, p):
+        name = p.ID
+        value = p.value
+        vairable = bindings.lookup(name)
+        if value < variable["min"] or value > variable["max"]:
+            print(f"overflow detected in {name} {p.ASSIGN} {value}, assigned value must be in range [{type_mapping['min']},{type_mapping['max']}]")
+            exit(1)
+        return f"{type_mapping['mapping']} {name} {p.ASSIGN} {value}"
+        return f"{p.ID}{p.ASSIGN}{p.value}"
 
     @_("WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE")
     def WHILE(self,p):
@@ -182,9 +204,9 @@ class BasedParser(Parser):
     def term(self,p):
         return p.ID
     
-    @_("primitive")
+    @_("value")
     def term(self,p):
-        return p.primitive
+        return p.value
 
 def main():
 # For transpiled C code

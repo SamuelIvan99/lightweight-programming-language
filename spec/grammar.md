@@ -2,20 +2,23 @@
 
 ```
 
-INTEGRAL_TYPE : i64 | i32 | i16 | i8 | isize | u64 | u32 | u16 | u8 | usize
+SIGNED_TYPE   : i64 | i32 | i16 | i8 | isize
+UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
-type          : INTEGRAL_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-INT_VALUE       : -?\d+
-FLOAT_VALUE     : -?\d+(\.\d+)?
-BOOL_VALUE      : true | false
-CHAR_VALUE      : \".*\"
-value           : INT_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-<!-- name of the variable, class, function -->
-ID : [a-zA-Z_][a-zA-Z0-9_\-]*
+INTEGRAL_VALUE : -?\d+
+FLOAT_VALUE    : -?\d+(\.\d+)?
+BOOL_VALUE     : true | false
+CHAR_VALUE     : \'.\'
+
+value          : INT_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+
+// name of the variable, class, function
+ID : [a-zA-Z_][a-zA-Z0-9_\-]* 
 
 ASSIGN : =
 END    : ;
@@ -33,11 +36,11 @@ expression : term
 term       : term * factor | term / factor | factor
 factor     : value | ID | LBRACE expression RBRACE
 
-program     : statements
-statements  : statement END statements | Ɛ
-statement   : declaration | var_assignment | WHILE | Ɛ
-declaration : type ID initializer
-initializer : ASSIGN value | Ɛ
+program          : statements
+statements       : statement END statements | Ɛ
+statement        : declaration | declaration_with_initialization | var_assignment | WHILE | Ɛ
+declaration      : type ID
+declaration_with_initialization : type ID ASSIGN value
 
 var_assignment : ID ASSIGN value
 
