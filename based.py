@@ -51,7 +51,8 @@ class BasedLexer(Lexer):
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
-
+    debugfile = "dist/parser.out"
+    
     @_("statements")
     def program(self, p):
         return f"{p.statements}"
