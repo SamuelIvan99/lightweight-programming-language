@@ -2,24 +2,32 @@ from sly import Lexer, Parser
 import os
 
 class BasedLexer(Lexer):
-    tokens = { INT_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
-               INT, FLOAT, BOOL, CHAR, ID,
-               ASSIGN, END , COMPARATOR, LBRACE, RBRACE,
-               LCURLYBRACE, RCURLYBRACE, LOGICAL_OPERATOR, WHILE_NAME}
+    tokens = { INTEGRAL_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
+               INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID,
+               ASSIGN, END, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE,
+               COMPARATOR, LOGICAL_OPERATOR, WHILE_NAME, IF_NAME, ELSE_NAME,
+               MINUS, PLUS, DIVISION, MULTIPLICATION}
 
-    INT_TYPE      = r"i64|i32|i16|i8|isize"
-    UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
+    INTEGRAL_TYPE      = r"i64|i32|i16|i8|isize|u64|u32|u16|u8|usize"
     FLOAT_TYPE    = r"f64|f32"
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
 
-    FLOAT = r"-?\d+(\.\d+)?"
-    INT   = r"-?\d+"
-    BOOL  = r"true|false"
-    CHAR  = r'"."'
-    LOGICAL_OPERATOR = r"AND|OR"
+    INTEGRAL_VALUE   = r"-?\d+"
+    FLOAT_VALUE = r"-?\d+(\.\d+)?"
+    BOOL_VALUE  = r"true|false"
+    CHAR_VALUE  = r'"."'
+
+    LOGICAL_OPERATOR = r"AND|OR|NEGATION"
 
     WHILE_NAME = r"while"
+    IF_NAME    = r"if"
+    ELSE_NAME  = r"else"
+
+    MINUS          = r"\-"
+    PLUS           = r"\+"
+    DIVISION       = r"\/"
+    MULTIPLICATION = r"\*"
 
     ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
 
@@ -30,7 +38,6 @@ class BasedLexer(Lexer):
     RBRACE      = r"\)"
     LCURLYBRACE = r"\{"
     RCURLYBRACE = r"\}"
-
 
     literals = {}
 
@@ -57,9 +64,9 @@ class BasedParser(Parser):
     def statements(self, p):
         return ""
 
-    @_("declaration")
+    @_("var_declaration")
     def statement(self, p):
-        return p.declaration
+        return p.var_declaration
     
     @_("var_assignment")
     def statement(self, p):
@@ -69,47 +76,54 @@ class BasedParser(Parser):
     def statement(self,p):
         return p.WHILE
     
+    @_("IF")
+    def statement(self,p):
+        return p.IF
+    
+    @_("ELSE")
+    def statement(self,p):
+        return p.ELSE
+    
     @_("")
     def statement(self, p):
         return ""
 
     @_("type ID initializer")
-    def declaration(self, p):
+    def var_declaration(self, p):
         return f"{p.type} {p.ID} {p.initializer}"
 
-    @_("ASSIGN primitive")
+    @_("ASSIGN value")
     def initializer(self, p):
-        return f"{p.ASSIGN} {p.primitive}"
+        return f"{p.ASSIGN} {p.value}"
+    
     @_("")
     def initializer(self, p):
         return ""
 
-    @_("INT_TYPE")
+    @_("INTEGRAL_TYPE")
     def type(self, p):
-        if p.INT_TYPE == "i64":
+        if p.INTEGRAL_TYPE == "i64":
             type = "long long int"
-        elif p.INT_TYPE == "i32":
+        elif p.INTEGRAL_TYPE == "i32":
             type = "long int"
-        elif p.INT_TYPE == "i16":
+        elif p.INTEGRAL_TYPE == "i16":
             type = "int"
-        elif p.INT_TYPE == "i8":
+        elif p.INTEGRAL_TYPE == "i8":
             type = "char"
-        elif p.INT_TYPE == "isize": 
+        elif p.INTEGRAL_TYPE == "isize": 
             type = "size_t" # I don't think size_t is signed
-        return type
-    @_("UNSIGNED_TYPE")
-    def type(self, p):
-        if p.UNSIGNED_TYPE == "u64":
+        elif p.INTEGRAL_TYPE == "u64":
             type = "unsigned long long int"
-        elif p.UNSIGNED_TYPE == "u32":
+        elif p.INTEGRAL_TYPE == "u32":
             type = "unsigned long int"
-        elif p.UNSIGNED_TYPE == "u16":
+        elif p.INTEGRAL_TYPE == "u16":
             type = "unsigned int"
-        elif p.UNSIGNED_TYPE == "u8":
+        elif p.INTEGRAL_TYPE == "u8":
             type = "unsigned char"
-        elif p.UNSIGNED_TYPE == "usize":
+        elif p.INTEGRAL_TYPE == "usize":
             type = "size_t"
         return type
+        
     @_("FLOAT_TYPE")
     def type(self, p):
         if p.FLOAT_TYPE == "f64":
@@ -117,74 +131,114 @@ class BasedParser(Parser):
         elif p.FLOAT_TYPE == "f32":
             type = "float"
         return type
+
     @_("BOOL_TYPE")
     def type(self, p):
         return "char"
+    
     @_("CHAR_TYPE")
     def type(self, p):
         return "char"
 
-    @_("INT")
-    def primitive(self, p):
-        return p.INT
-    @_("FLOAT")
-    def primitive(self, p):
-        return p.FLOAT
-    @_("BOOL")
-    def primitive(self, p):
-        if p.BOOL == "true":
+    @_("INTEGRAL_VALUE")
+    def value(self, p):
+        return p.INTEGRAL_VALUE
+    
+    @_("FLOAT_VALUE")
+    def value(self, p):
+        return p.FLOAT.VALUE
+    
+    # Do we still want to have Bools this way?
+    @_("BOOL_VALUE")
+    def value(self, p):
+        if p.BOOL_VALUE == "true":
             value = "0x01"
-        elif p.BOOL == "false":
+        elif p.BOOL_VALUE == "false":
             value = "0x00"
         return value
-    @_("CHAR")
-    def primitive(self, p):
-        return p.CHAR
+    
+    @_("CHAR_VALUE")
+    def value(self, p):
+        return p.CHAR_VALUE
 
-    @_("ID ASSIGN primitive")
+    @_("ID ASSIGN value")
     def var_assignment(self,p):
-        return f"{p.ID}{p.ASSIGN}{p.primitive}"
-
-    @_("WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE")
-    def WHILE(self,p):
-        return f"{p.WHILE_NAME}{p.LBRACE}{p.conditions}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
+        return f"{p.ID}{p.ASSIGN}{p.value}"
     
-    @_("single_condition")
-    def conditions(self,p):
-        return p.single_condition
+    #  expressions begin here
+    @_("expression PLUS term")
+    def expression(self,p):
+        return f"{p.expression}{p.PLUS}{p.term}"
     
-    @_("multiple_condition")
-    def conditions(self,p):
-        return p.multiple_condition
+    @_("expression MINUS term")
+    def expression(self,p):
+        return f"{p.expression}{p.MINUS}{p.term}"
     
-    @_("term")
-    def single_condition(self,p):
-        return p.term
-
-    @_("term COMPARATOR term logical_operation")
-    def multiple_condition(self,p):
-        return f"{p.term0}{p.COMPARATOR}{p.term1}{p.logical_operation}"
+    @_("expression logical_operator_or_comparator expression")
+    def expression(self,p):
+        return f"{p.expression0}{p.logical_operator_or_comparator}{p.expression1}"
     
-    @_("LOGICAL_OPERATOR term COMPARATOR term logical_operation")
-    def logical_operation(self,p):
+    @_("LOGICAL_OPERATOR")
+    def logical_operator_or_comparator(self,p):
         if p.LOGICAL_OPERATOR == "AND":
             logical_operator = "&&"
         elif p.LOGICAL_OPERATOR == "OR":
             logical_operator = "||"
-
-        return f"{logical_operator}{p.term0}{p.COMPARATOR}{p.term1}{p.logical_operation}"
+        elif p.LOGICAL_OPERATOR == "NOT":
+            logical_operator = "!"
+        return logical_operator
     
-    @_("")
-    def logical_operation(self,p):
-        return ""
+    @_("COMPARATOR")
+    def logical_operator_or_comparator(self,p):
+        return p.COMPARATOR
+
+    @_("term")
+    def expression(self,p):
+        return p.term
+    
+    @_("term MULTIPLICATION factor")
+    def term(self,p):
+        return f"{p.term}{p.MULTIPLICATION}{p.FACTOR}"
+    
+    @_("term DIVISION factor")
+    def term(self,p):
+        return f"{p.term}{p.DIVISION}{p.FACTOR}"
+    
+    @_("factor")
+    def term(self,p):
+        return p.factor
+    
+    @_("value")
+    def factor(self,p):
+        return p.value
     
     @_("ID")
-    def term(self,p):
+    def factor(self,p):
         return p.ID
     
-    @_("primitive")
-    def term(self,p):
-        return p.primitive
+    @_("LBRACE expression RBRACE")
+    def factor(self,p):
+        return f"{p.LBRACE}{p.expression}{p.RBRACE}"
+    
+    #  expressions end here
+
+    @_("WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
+    def WHILE(self,p):
+        return f"{p.WHILE_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
+    
+    @_("IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE ELSE")
+    def IF(self,p):
+        return f"{p.IF_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.ELSE}"
+    
+    @_("ELSE_NAME LCURLYBRACE statements RCURLYBRACE")
+    def ELSE(self,p):
+        return f"{p.ELSE_NAME}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
+    
+    @_("ELSE_NAME IF")
+    def ELSE(self,p):
+        return f"{p.ELSE_NAME}{p.IF}"
+    
+    
 
 def main():
 # For transpiled C code

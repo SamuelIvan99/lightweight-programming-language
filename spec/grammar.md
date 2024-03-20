@@ -8,11 +8,11 @@ BOOL_TYPE     : bool
 CHAR_TYPE     : char
 type          : INTEGRAL_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-INT_VALUE       : -?\d+
+INTEGRAL_VALUE       : -?\d+
 FLOAT_VALUE     : -?\d+(\.\d+)?
 BOOL_VALUE      : true | false
 CHAR_VALUE      : \".*\"
-value           : INT_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+value           : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
 
 <!-- name of the variable, class, function -->
 ID : [a-zA-Z_][a-zA-Z0-9_\-]*
@@ -24,41 +24,37 @@ RBRACE : )
 LCURLYBRACE : {
 RCURLYBRACE : }
 
-COMPARATORS          : == | != | < | > | <= | >=
-LOGICAL_OPERATORS    : AND | OR | NEGATION
-logical_operators_or_comparators : LOGICAL_OPERATORS | COMPARATORS
+MINUS          : -
+PLUS           : +
+DIVISION       : /
+MULTIPLICATION : *
+
+COMPARATOR          : == | != | < | > | <= | >=
+LOGICAL_OPERATOR    : AND | OR | NEGATION
+
+logical_operator_or_comparator : LOGICAL_OPERATOR | COMPARATOR
 expression : expression + term | expression - term
-expression : expression LOGICAL_OPERATORS_OR_COMPARATORS expression
+expression : expression logical_operator_or_comparator expression
 expression : term
 term       : term * factor | term / factor | factor
 factor     : value | ID | LBRACE expression RBRACE
 
 program     : statements
 statements  : statement END statements | Ɛ
-statement   : declaration | var_assignment | WHILE | Ɛ
-declaration : type ID initializer
+statement   : var_declaration | var_assignment | WHILE | IF | ELSE | Ɛ
+var_declaration : type ID initializer
 initializer : ASSIGN value | Ɛ
 
 var_assignment : ID ASSIGN value
 
-expression
---------------------------- WHILE STATEMENT
+WHILE              : WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE
 
-WHILE              : WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE
-conditions         : single_condition | multiple_condition
-single_condition   : term
-multiple_condition : term COMPARATOR term logical_operation
-logical_operation  : LOGICAL_OPERATOR term COMPARATOR term logical_operation | Ɛ
+<!-- How to implement this optinality "?" -->
+if_statement : IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
 
-WHILE_NAME         : while
+else_statement : ELSE_NAME LCURLYBRACE statements RCURLYBRACE | ELSE_NAME if_statement
 
-
-
-<!-- These namings can be subject to change. If we change something, don't forget to change the implementation as well, so it represents the grammar correctly, to avoid confusion. (From looking at the grammar here, and looking at mismatching names in the implementation.) -->
---------------------------
-
---------------------- IF statement
-if_statement : "if" LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
-else_statement : "else" LCURLYBRACE statements RCURLYBRACE | "else" if_statement
-
+WHILE_NAME = while
+IF_NAME = if
+ELSE_NAME = else
 ```
