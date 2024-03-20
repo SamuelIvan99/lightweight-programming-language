@@ -53,6 +53,21 @@ class BasedParser(Parser):
     tokens = BasedLexer.tokens
     debugfile = "dist/parser.out"
     
+    precedence = (
+        ("left", COMPARATOR),
+        ("left", LOGICAL_OPERATOR),
+        ("left", PLUS, MINUS),
+        ("left", DIVISION, MULTIPLICATION),
+    )
+    # Example -> go through the operation order in your head
+    # 3 + 4 AND x * z >= 10
+    
+    # highest (done first) to lowest(done last):
+    #  - MULTIPLICATION/DIVISION
+    #  - PLUS/MINUS
+    #  - LOGICAL_OPERATOR
+    #  - COMPARATOR
+
     @_("statements")
     def program(self, p):
         return f"{p.statements}"
