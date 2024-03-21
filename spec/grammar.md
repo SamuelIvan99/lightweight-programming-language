@@ -33,11 +33,13 @@ COMPARATOR          : == | != | < | > | <= | >=
 LOGICAL_OPERATOR    : AND | OR | NEGATION
 
 logical_operator_or_comparator : LOGICAL_OPERATOR | COMPARATOR
-expression : expression + term | expression - term
-expression : expression logical_operator_or_comparator expression
-expression : term
-term       : term * factor | term / factor | factor
-factor     : value | ID | LBRACE expression RBRACE
+
+expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
+comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
+arithmetic_layer      : arithmetic_layer + term | arithmetic_layer - term | term
+term                  : term * factor | term / factor | factor
+factor                : value | ID | LBRACE expression RBRACE
+
 
 program     : statements
 statements  : statement END statements | Ɛ

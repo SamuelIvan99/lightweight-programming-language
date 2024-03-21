@@ -6,24 +6,27 @@ class BasedLexer(Lexer):
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID,
                ASSIGN, END, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE,
                COMPARATOR, LOGICAL_OPERATOR, WHILE_NAME, IF_NAME, ELSE_NAME,
-               MINUS, PLUS, DIVISION, MULTIPLICATION}
+               AND, OR, MINUS, PLUS, DIVISION, MULTIPLICATION }
 
-    INTEGRAL_TYPE      = r"i64|i32|i16|i8|isize|u64|u32|u16|u8|usize"
+    INTEGRAL_TYPE   = r"i64|i32|i16|i8|isize|u64|u32|u16|u8|usize"
     FLOAT_TYPE    = r"f64|f32"
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
 
-    INTEGRAL_VALUE   = r"-?\d+"
-    FLOAT_VALUE = r"-?\d+(\.\d+)?"
-    BOOL_VALUE  = r"true|false"
-    CHAR_VALUE  = r'"."'
+    FLOAT_VALUE    = r"-?\d+\.\d+"
+    INTEGRAL_VALUE = r"-?\d+"
+    BOOL_VALUE     = r"true|false"
+    CHAR_VALUE     = r"\'.\'"
 
-    LOGICAL_OPERATOR = r"AND|OR|NEGATION"
+    # LOGICAL_OPERATOR = r"AND|OR|NEGATION"
+    LOGICAL_OPERATOR = r"AND|OR"
 
     WHILE_NAME = r"while"
     IF_NAME    = r"if"
     ELSE_NAME  = r"else"
 
+    AND            = r"\&\&"
+    OR             = r"\|\|"
     MINUS          = r"\-"
     PLUS           = r"\+"
     DIVISION       = r"\/"
@@ -53,12 +56,12 @@ class BasedParser(Parser):
     tokens = BasedLexer.tokens
     debugfile = "dist/parser.out"
     
-    precedence = (
-        ("left", COMPARATOR),
-        ("left", LOGICAL_OPERATOR),
-        ("left", PLUS, MINUS),
-        ("left", DIVISION, MULTIPLICATION),
-    )
+    # precedence = (
+    #     ("left", COMPARATOR),
+    #     ("left", LOGICAL_OPERATOR),
+    #     ("left", PLUS, MINUS),
+    #     ("left", DIVISION, MULTIPLICATION),
+    # )
     # Example -> go through the operation order in your head
     # 3 + 4 AND x * z >= 10
     
@@ -67,7 +70,7 @@ class BasedParser(Parser):
     #  - PLUS/MINUS
     #  - LOGICAL_OPERATOR
     #  - COMPARATOR
-
+    
     @_("statements")
     def program(self, p):
         return f"{p.statements}"
@@ -79,7 +82,7 @@ class BasedParser(Parser):
     @_("")
     def statements(self, p):
         return ""
-
+    
     @_("var_declaration")
     def statement(self, p):
         return p.var_declaration
@@ -88,17 +91,17 @@ class BasedParser(Parser):
     def statement(self, p):
         return p.var_assignment
     
-    @_("WHILE")
-    def statement(self,p):
-        return p.WHILE
+    # @_("WHILE")
+    # def statement(self,p):
+    #     return p.WHILE
     
-    @_("IF")
-    def statement(self,p):
-        return p.IF
+    # @_("IF")
+    # def statement(self,p):
+    #     return p.IF
     
-    @_("ELSE")
-    def statement(self,p):
-        return p.ELSE
+    # @_("ELSE")
+    # def statement(self,p):
+    #     return p.ELSE
     
     @_("")
     def statement(self, p):
@@ -182,35 +185,55 @@ class BasedParser(Parser):
         return f"{p.ID}{p.ASSIGN}{p.value}"
     
     #  expressions begin here
-    @_("expression PLUS term")
-    def expression(self,p):
-        return f"{p.expression}{p.PLUS}{p.term}"
+    @_("expression AND comparison_layer")
+    def expression(self, p):
+        return f"{p.expression}{p.AND}{p.comparison_layer}"
     
-    @_("expression MINUS term")
-    def expression(self,p):
-        return f"{p.expression}{p.MINUS}{p.term}"
+    @_("expression OR comparison_layer")
+    def expression(self, p):
+        return f"{p.expression}{p.OR}{p.comparison_layer}"
     
-    @_("expression logical_operator_or_comparator expression")
-    def expression(self,p):
-        return f"{p.expression0}{p.logical_operator_or_comparator}{p.expression1}"
+    @_("comparison_layer")
+    def expression(self, p):
+        return f"{p.comparison_layer}"
     
-    @_("LOGICAL_OPERATOR")
-    def logical_operator_or_comparator(self,p):
-        if p.LOGICAL_OPERATOR == "AND":
-            logical_operator = "&&"
-        elif p.LOGICAL_OPERATOR == "OR":
-            logical_operator = "||"
-        elif p.LOGICAL_OPERATOR == "NOT":
-            logical_operator = "!"
-        return logical_operator
-    
-    @_("COMPARATOR")
-    def logical_operator_or_comparator(self,p):
-        return p.COMPARATOR
+    @_("comparison_layer COMPARATOR arithmetic_layer")
+    def comparison_layer(self, p):
+        return f"{p.comparison_layer}{p.COMPARATOR}{p.arithmetic_layer}"
 
-    @_("term")
-    def expression(self,p):
-        return p.term
+    @_("arithmetic_layer")
+    def comparison_layer(self, p):
+        return f"{p.arithmetic_layer}"
+    
+    @_("arithmetic_layer PLUS term")
+    def arithmetic_layer(self,p):
+        return f"{p.arithmetic_layer}{p.PLUS}{p.term}"
+    
+    @_("arithmetic_layer MINUS term")
+    def arithmetic_layer(self,p):
+        return f"{p.arithmetic_layer}{p.MINUS}{p.term}"
+    
+    @_("arithmetic_layer")
+    def arithmetic_layer(self, p):
+        return f"{p.term}"
+    
+    # @_("expression logical_operator_or_comparator expression")
+    # def expression(self,p):
+    #     return f"{p.expression0}{p.logical_operator_or_comparator}{p.expression1}"
+    
+    # @_("LOGICAL_OPERATOR")
+    # def logical_operator_or_comparator(self,p):
+    #     if p.LOGICAL_OPERATOR == "AND":
+    #         logical_operator = "&&"
+    #     elif p.LOGICAL_OPERATOR == "OR":
+    #         logical_operator = "||"
+    #     elif p.LOGICAL_OPERATOR == "NOT":
+    #         logical_operator = "!"
+    #     return logical_operator
+    
+    # @_("COMPARATOR")
+    # def logical_operator_or_comparator(self,p):
+    #     return p.COMPARATOR
     
     @_("term MULTIPLICATION factor")
     def term(self,p):
@@ -238,21 +261,21 @@ class BasedParser(Parser):
     
     #  expressions end here
 
-    @_("WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
-    def WHILE(self,p):
-        return f"{p.WHILE_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
+    # @_("WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
+    # def WHILE(self,p):
+    #     return f"{p.WHILE_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
     
-    @_("IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE ELSE")
-    def IF(self,p):
-        return f"{p.IF_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.ELSE}"
+    # @_("IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE ELSE")
+    # def IF(self,p):
+    #     return f"{p.IF_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.ELSE}"
     
-    @_("ELSE_NAME LCURLYBRACE statements RCURLYBRACE")
-    def ELSE(self,p):
-        return f"{p.ELSE_NAME}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
+    # @_("ELSE_NAME LCURLYBRACE statements RCURLYBRACE")
+    # def ELSE(self,p):
+    #     return f"{p.ELSE_NAME}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
     
-    @_("ELSE_NAME IF")
-    def ELSE(self,p):
-        return f"{p.ELSE_NAME}{p.IF}"
+    # @_("ELSE_NAME IF")
+    # def ELSE(self,p):
+    #     return f"{p.ELSE_NAME}{p.IF}"
     
     
 
