@@ -15,10 +15,14 @@ FLOAT_VALUE    : -?\d+(\.\d+)?
 BOOL_VALUE     : true | false
 CHAR_VALUE     : \'.\'
 
-value          : INT_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
 
-// name of the variable, class, function
-ID : [a-zA-Z_][a-zA-Z0-9_\-]* 
+ID : [a-zA-Z_][a-zA-Z0-9_\-]*
+
+WHILE  : while
+IF     : if
+ELSE   : else
+
 
 ASSIGN : =
 END    : ;
@@ -27,41 +31,32 @@ RBRACE : )
 LCURLYBRACE : {
 RCURLYBRACE : }
 
-COMPARATORS          : == | != | < | > | <= | >=
-LOGICAL_OPERATORS    : AND | OR | NEGATION
-logical_operators_or_comparators : LOGICAL_OPERATORS | COMPARATORS
-expression : expression + term | expression - term
-expression : expression LOGICAL_OPERATORS_OR_COMPARATORS expression
-expression : term
-term       : term * factor | term / factor | factor
-factor     : value | ID | LBRACE expression RBRACE
+MINUS          : -
+PLUS           : +
+DIVISION       : /
+MULTIPLICATION : *
 
-program          : statements
-statements       : statement END statements | Ɛ
-statement        : declaration | declaration_with_initialization | var_assignment | WHILE | Ɛ
-declaration      : type ID
-declaration_with_initialization : type ID ASSIGN value
+COMPARATOR       : == | != | < | > | <= | >=
+LOGICAL_OPERATOR : AND | OR | NEGATION
 
-var_assignment : ID ASSIGN value
+program : statements
 
-expression
---------------------------- WHILE STATEMENT
+statements       : statement statements | END
+statement        : expression_statement | declaration | declaration_init | assignment | while | if | END
 
-WHILE              : WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE
-conditions         : single_condition | multiple_condition
-single_condition   : term
-multiple_condition : term COMPARATOR term logical_operation
-logical_operation  : LOGICAL_OPERATOR term COMPARATOR term logical_operation | Ɛ
+declaration      : type ID END
+declaration_init : type ID ASSIGN expression END
 
-WHILE_NAME         : while
+assignment       : ID ASSIGN expression END
 
+while            : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
 
+expression_statement  : expression END
+expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
+comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
+artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
+term                  : term MULTIPLICATION factor | term DIVISION factor | factor
+factor                : value | ID | LBRACE expression RBRACE
 
-<!-- These namings can be subject to change. If we change something, don't forget to change the implementation as well, so it represents the grammar correctly, to avoid confusion. (From looking at the grammar here, and looking at mismatching names in the implementation.) -->
---------------------------
-
---------------------- IF statement
-if_statement : "if" LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
-else_statement : "else" LCURLYBRACE statements RCURLYBRACE | "else" if_statement
-
-```
+if   : IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
+else : ELSE_NAME LCURLYBRACE statements RCURLYBRACE | ELSE_NAME if_statement

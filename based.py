@@ -1,13 +1,34 @@
-from variables import VariableStack
-
 from sly import Lexer, Parser
 import os
 
+class Bindings:
+    def __init__(self):
+        self._stack = []
+
+    def bind(self, name, type, value):
+        self._stack.insert(0, (name, type, value))
+
+    def lookup(self, name_to_find):
+        for name, type in self._stack:
+            if name == name_to_find:
+                return name
+        return None
+
+    def enter(self):
+        self._stack.insert(0, "#")
+
+    def exit(self):
+        variable = self._stack.pop(0)
+        while len(self.stack) > 0 and variable != "#":
+            variable = self._stack.pop(0)
+
+bindings = Bindings()
+
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
-               INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID,
-               ASSIGN, END, COMPARATOR, LBRACE, RBRACE,
-               LCURLYBRACE, RCURLYBRACE, LOGICAL_OPERATOR, WHILE_NAME}
+               INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
+               END, COMPARATOR, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE, LOGICAL_OPERATOR,
+               WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -21,7 +42,16 @@ class BasedLexer(Lexer):
     CHAR_VALUE     = r"\'.\'"
     LOGICAL_OPERATOR = r"AND|OR"
 
-    WHILE_NAME = r"while"
+    WHILE = r"while"
+    IF    = r"if"
+    ELSE  = r"else"
+
+    AND            = r"\&\&"
+    OR             = r"\|\|"
+    MINUS          = r"\-"
+    PLUS           = r"\+"
+    DIVISION       = r"\/"
+    MULTIPLICATION = r"\*"
 
     ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
 
@@ -33,7 +63,6 @@ class BasedLexer(Lexer):
     LCURLYBRACE = r"\{"
     RCURLYBRACE = r"\}"
 
-
     literals = {}
 
     ignore = " \t"
@@ -44,60 +73,106 @@ class BasedLexer(Lexer):
 
     ignore_comment = r"#.*"
 
-bindings = VariableStack()
-
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
 
     @_("statements")
     def program(self, p):
         return f"{p.statements}"
+    @_("")
+    def program(self, p):
+        return f""
 
-    @_("statement END statements")
+
+    @_("statement statements")
     def statements(self, p):
-        return f"    {p.statement}{p.END}\n{p.statements}"
-
+        return f"{p.statement}{p.statements}"
     @_("")
     def statements(self, p):
-        return ""
+        return f""
 
+
+    @_("expression_statement")
+    def statement(self, p):
+        return f"{p.expression_statement}\n\t"
     @_("declaration")
     def statement(self, p):
-        return p.declaration
+        return f"{p.declaration}\n\t"
+    @_("declaration_init")
+    def statement(self, p):
+        return f"{p.declaration_init}\n\t"
+    @_("END")
+    def statement(self, p):
+        return f"{p.END}"
 
-    @_("declaration_with_initialization")
-    def statement(self, p):
-        return p.declaration_with_initialization
-    
-    @_("var_assignment")
-    def statement(self, p):
-        return p.var_assignment
-    
-    @_("WHILE")
-    def statement(self,p):
-        return p.WHILE
-    
-    @_("")
-    def statement(self, p):
-        return ""
 
-    @_("type ID")
+    @_("type ID END")
     def declaration(self, p):
-        type_name, type_mapping = p.type
-        bindings.bind(p.ID, type, type_mapping["default"])
-        return f"{type_mapping['mapping']} {p.ID}"
-
-    @_("type ID ASSIGN value")
-    def declaration_with_initialization(self, p):
-        name = p.ID
-        type_name, type_mapping = p.type
-        value = p.value
-        if value < type_mapping["min"] or value > type_mapping["max"]:
-            print(f"ERROR: overflow detected in {type_name} {name} {p.ASSIGN} {value}, assigned value must be in range [{type_mapping['min']},{type_mapping['max']}]")
+        type_name, mapping, min, max, default = p.type
+        bindings.bind(p.ID, type_name, default)
+        return f"{mapping} {p.ID}{p.END}"
+    @_("type ID ASSIGN expression END")
+    def declaration_init(self, p):
+        var_name = p.ID
+        type_name, mapping, min, max, default = p.type
+        value = eval(p.expression)
+        if value < min or value > max:
+            print(f"ERROR: overflow detected in {type_name} {var_name} {p.ASSIGN} {value}, assigned value must be in range [{min},{max}]")
             exit(1)
-        bindings.bind(name, type_name, value)
-        return f"{type_mapping['mapping']} {name} {p.ASSIGN} {value}"
+        bindings.bind(var_name, type_name, value)            
+        return f"{mapping} {p.ID} {p.ASSIGN} {value}{p.END}"
 
+    @_("expression END")
+    def expression_statement(self, p):
+        return f"{p.expression}{p.END}"
+    @_("expression AND comparison_layer")
+    def expression(self, p):
+        return f"{p.expression} {p.AND} {p.comparison_layer}" 
+    @_("expression OR comparison_layer")
+    def expression(self, p):
+        return f"{p.expression} {p.OR} {p.comparison_layer}" 
+    @_("comparison_layer")
+    def expression(self, p):
+        return f"{p.comparison_layer}" 
+    @_("comparison_layer COMPARATOR arithmetic_layer")
+    def comparison_layer(self, p):
+        return f"{p.comparison_layer} {p.COMPARATOR} {p.arithmetic_layer}"
+    @_("arithmetic_layer")
+    def comparison_layer(self, p):
+        return f"{p.arithmetic_layer}"
+    @_("arithmetic_layer PLUS term")
+    def arithmetic_layer(self, p):
+        return f"{p.arithmetic_layer} {p.PLUS} {p.term}"
+    @_("arithmetic_layer MINUS term")
+    def arithmetic_layer(self, p):
+        return f"{p.arithmetic_layer} {p.MINUS} {p.term}"
+    @_("term")
+    def arithmetic_layer(self, p):
+        return f"{p.term}"
+
+
+    @_("term MULTIPLICATION factor")
+    def term(self,p):
+        return f"{p.term} {p.MULTIPLICATION} {p.factor}"    
+    @_("term DIVISION factor")
+    def term(self,p):
+        return f"{p.term} {p.DIVISION} {p.factor}" 
+    @_("factor")
+    def term(self,p):
+        return f"{p.factor}"
+
+ 
+    @_("LBRACE expression RBRACE")
+    def factor(self,p):
+        return f"{p.LBRACE}{p.expression}{p.RBRACE}"
+    @_("value")
+    def factor(self,p):
+        return f"{p.value}"
+    @_("ID")
+    def factor(self,p):
+        return f"{p.ID}"
+
+ 
     @_("SIGNED_TYPE")
     def type(self, p):
         types_mapping = {
@@ -107,8 +182,13 @@ class BasedParser(Parser):
             "i8": {"mapping": "char", "min": -(2**7 - 1), "max": 2**7 - 1, "default": 0}
             # "isize": "size_t"
         }
-        return (p.SIGNED_TYPE, types_mapping[p.SIGNED_TYPE])
-
+        return (
+            p.SIGNED_TYPE,
+            types_mapping[p.SIGNED_TYPE]["mapping"],
+            types_mapping[p.SIGNED_TYPE]["min"],
+            types_mapping[p.SIGNED_TYPE]["max"],
+            types_mapping[p.SIGNED_TYPE]["default"]
+        )
     @_("UNSIGNED_TYPE")
     def type(self, p):
         types_mapping = {
@@ -118,32 +198,52 @@ class BasedParser(Parser):
             "u8": {"mapping": "unsigned char", "min": 2**7 - 1, "max": 2**7 - 1, "default": 0},
             # "usize": "size_t"
         }
-        return (p.UNSIGNED_TYPE, types_mapping[p.UNSIGNED_TYPE])
-
+        return (
+            p.UNSIGNED_TYPE,
+            types_mapping[p.UNSIGNED_TYPE]["mapping"],
+            types_mapping[p.UNSIGNED_TYPE]["min"],
+            types_mapping[p.UNSIGNED_TYPE]["max"],
+            types_mapping[p.UNSIGNED_TYPE]["default"]
+        )
     @_("FLOAT_TYPE")
     def type(self, p):
         types_mapping = {
-            "f64": "double",
-            "f32": "float"
+            "f64": {"mapping": "double", "min": 2.22507385 * 10**(-308), "max": 1.7976931 * 10**308, "default": 0},
+            "f32": {"mapping": "float", "min": 1.175494351 * 10**(-38), "max": 3.4028235 * 10**38, "default": 0}
         }
-        return (p.FLOAT_TYPE, types_mapping[p.FLOAT_TYPE])
-
+        return (
+            p.FLOAT_TYPE,
+            types_mapping[p.FLOAT_TYPE]["mapping"],
+            types_mapping[p.FLOAT_TYPE]["min"],
+            types_mapping[p.FLOAT_TYPE]["max"],
+            types_mapping[p.FLOAT_TYPE]["default"]
+        )
     @_("CHAR_TYPE")
     def type(self, p):
-        return (p.CHAR_TYPE, "char")
-
+        return (
+            p.CHAR_TYPE,
+            "char",
+            "a",
+            "Z",
+            "0"
+        )
     @_("BOOL_TYPE")
     def type(self, p):
-        return (p.BOOL_TYPE, "char")
+        return (
+            p.CHAR_TYPE,
+            "char",
+            "a",
+            "Z",
+            "0"
+        )
+
 
     @_("INTEGRAL_VALUE")
     def value(self, p):
         return int(p.INTEGRAL_VALUE)
-
     @_("FLOAT_VALUE")
     def value(self, p):
         return float(p.FLOAT_VALUE)
-
     @_("BOOL_VALUE")
     def value(self, p):
         if p.BOOL_VALUE == "true":
@@ -151,69 +251,52 @@ class BasedParser(Parser):
         elif p.BOOL_VALUE == "false":
             value = 0
         return value
-
     @_("CHAR_VALUE")
     def value(self, p):
         return p.CHAR_VALUE
 
-    @_("ID ASSIGN value")
-    def var_assignment(self, p):
-        name = p.ID
-        value = p.value
-        vairable = bindings.lookup(name)
-        if value < variable["min"] or value > variable["max"]:
-            print(f"overflow detected in {name} {p.ASSIGN} {value}, assigned value must be in range [{type_mapping['min']},{type_mapping['max']}]")
-            exit(1)
-        return f"{type_mapping['mapping']} {name} {p.ASSIGN} {value}"
-        return f"{p.ID}{p.ASSIGN}{p.value}"
 
-    @_("WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE")
-    def WHILE(self,p):
-        return f"{p.WHILE_NAME}{p.LBRACE}{p.conditions}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
+    # @_("expression logical_operator_or_comparator expression")
+    # def expression(self,p):
+    #     return f"{p.expression0}{p.logical_operator_or_comparator}{p.expression1}"
     
-    @_("single_condition")
-    def conditions(self,p):
-        return p.single_condition
+    # @_("LOGICAL_OPERATOR")
+    # def logical_operator_or_comparator(self,p):
+    #     if p.LOGICAL_OPERATOR == "AND":
+    #         logical_operator = "&&"
+    #     elif p.LOGICAL_OPERATOR == "OR":
+    #         logical_operator = "||"
+    #     elif p.LOGICAL_OPERATOR == "NOT":
+    #         logical_operator = "!"
+    #     return logical_operator
     
-    @_("multiple_condition")
-    def conditions(self,p):
-        return p.multiple_condition
-    
-    @_("term")
-    def single_condition(self,p):
-        return p.term
+    # @_("COMPARATOR")
+    # def logical_operator_or_comparator(self,p):
+    #     return p.COMPARATOR
 
-    @_("term COMPARATOR term logical_operation")
-    def multiple_condition(self,p):
-        return f"{p.term0}{p.COMPARATOR}{p.term1}{p.logical_operation}"
+    # @_("WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
+    # def WHILE(self,p):
+    #     return f"{p.WHILE_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
     
-    @_("LOGICAL_OPERATOR term COMPARATOR term logical_operation")
-    def logical_operation(self,p):
-        if p.LOGICAL_OPERATOR == "AND":
-            logical_operator = "&&"
-        elif p.LOGICAL_OPERATOR == "OR":
-            logical_operator = "||"
-
-        return f"{logical_operator}{p.term0}{p.COMPARATOR}{p.term1}{p.logical_operation}"
+    # @_("IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE ELSE")
+    # def IF(self,p):
+    #     return f"{p.IF_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.ELSE}"
     
-    @_("")
-    def logical_operation(self,p):
-        return ""
+    # @_("ELSE_NAME LCURLYBRACE statements RCURLYBRACE")
+    # def ELSE(self,p):
+    #     return f"{p.ELSE_NAME}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
     
-    @_("ID")
-    def term(self,p):
-        return p.ID
-    
-    @_("value")
-    def term(self,p):
-        return p.value
+    # @_("ELSE_NAME IF")
+    # def ELSE(self,p):
+    #     return f"{p.ELSE_NAME}{p.IF}"
 
 def main():
-# For transpiled C code
+    # For transpiled C code
     if not os.path.exists("dist"):
         os.mkdir("dist")
     if os.path.exists("dist/out.c"):
         os.remove("dist/out.c")
+
     # For compiled machine code
     if not os.path.exists("bin"):
         os.mkdir("bin")
@@ -227,13 +310,7 @@ def main():
         result = parser.parse(tokens)
 
     with open("dist/out.c", "a") as c_file:
-        c_file.write(
-f"""int main()
-{{
-{result}
-    return 0;
-}}
-""")
+        c_file.write(f"int main()\n{{\n\t{result}\n\n\treturn 0;\n}}")
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
