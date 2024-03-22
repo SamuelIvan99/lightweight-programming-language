@@ -53,7 +53,7 @@ params            : param_declaration multi_params | Ɛ
 multi_params      : COMMA param_declaration multi_params | Ɛ
 param_declaration : type ID
 
-function_call : ID LPAREN actual_params RPAREN END
+function_call : ID LPAREN actual_params RPAREN
 actual_params : expression multi_actual_params | Ɛ
 multi_actual_params : COMMA expression multi_actual_params | Ɛ
 
@@ -74,4 +74,4 @@ expression            : expression AND comparison_layer | expression OR comparis
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
-factor                : value | ID | LBRACE expression RBRACE | function_call
+factor                : value | ID | LPAREN expression LPAREN | function_call

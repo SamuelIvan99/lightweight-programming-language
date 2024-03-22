@@ -118,9 +118,9 @@ class BasedParser(Parser):
     def param_declaration(self, p):
         type_name, mapping, min, max, default = p.type
         return f"{mapping} {p.ID}"
-    @_("ID LPAREN actual_params RPAREN END")
+    @_("ID LPAREN actual_params RPAREN")
     def function_call(self, p):
-        return f"{p.ID}{p.LPAREN}{p.actual_params}{p.RPAREN}{p.END}"
+        return f"{p.ID}{p.LPAREN}{p.actual_params}{p.RPAREN}"
     @_("expression multi_actual_params")
     def actual_params(self, p):
         return f"{p.expression}{p.multi_actual_params}"
@@ -216,6 +216,9 @@ class BasedParser(Parser):
     @_("factor")
     def term(self,p):
         return f"{p.factor}"
+    @_("function_call")
+    def factor(self, p):
+        return f"{p.function_call}"
     @_("LPAREN expression RPAREN")
     def factor(self,p):
         return f"{p.LPAREN}{p.expression}{p.RPAREN}"
@@ -225,9 +228,6 @@ class BasedParser(Parser):
     @_("ID")
     def factor(self,p):
         return f"{p.ID}"
-    @_("function_call")
-    def factor(self, p):
-        return f"{p.function_call}"
     #endregion
 
  
