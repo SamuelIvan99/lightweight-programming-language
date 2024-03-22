@@ -1,6 +1,16 @@
+main():i16{
+    lksdjf (2+2);
+    i32 x = 10;
+}
+my_fn(i32 x, i64 y):bool{
+    i32 z = 10;
 
+    if(z == 10){
+        bool result = true;
+    }
+    else if(true == false){
 
-if (x == 3) {
-	i8 something = 10;
+    }
+    else {}
 }
 

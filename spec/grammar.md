@@ -9,6 +9,7 @@ BOOL_TYPE     : bool
 CHAR_TYPE     : char
 
 type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
+ABYSS_TYPE    = abyss
 
 INTEGRAL_VALUE : -?\d+
 FLOAT_VALUE    : -?\d+(\.\d+)?
@@ -38,10 +39,23 @@ RBRACE      : )
 LCURLYBRACE : {
 RCURLYBRACE : }
 COMMENT     : #
+COLON       : :
+COMMA       : ,
 
 
 # Syntactical Grammar
-program : statements
+program : functions
+
+functions : function functions | Ɛ
+function          : ID LBRACE params RBRACE COLON return_type LCURLYBRACE statements RCURLYBRACE
+return_type       : type | ABYSS_TYPE
+params            : param_declaration multi_params | Ɛ
+multi_params      : COMMA param_declaration multi_params | Ɛ
+param_declaration : type ID
+
+function_call : ID LPAREN actual_params RPAREN END
+actual_params : expression multi_actual_params | Ɛ
+multi_actual_params : COMMA expression multi_actual_params | Ɛ
 
 statements       : statement statements | Ɛ
 statement        : expression_statement | declaration | declaration_init | assignment | while_statement | if_statement | END
@@ -60,4 +74,4 @@ expression            : expression AND comparison_layer | expression OR comparis
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
-factor                : value | ID | LBRACE expression RBRACE
+factor                : value | ID | LBRACE expression RBRACE | function_call

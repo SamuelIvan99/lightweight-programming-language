@@ -28,14 +28,16 @@ bindings = Bindings()
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
-               END, COMPARATOR, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE,
-               WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE }
+               END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN,
+               WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
+               COLON, COMMA, ABYSS_TYPE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
     FLOAT_TYPE    = r"f64|f32"
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
+    ABYSS_TYPE    = r"abyss"
 
     FLOAT_VALUE    = r"-?\d+\.\d+"
     INTEGRAL_VALUE = r"-?\d+"
@@ -58,10 +60,12 @@ class BasedLexer(Lexer):
     COMPARATOR  = r"==|!=|<=|>=|<|>"
     ASSIGN      = r"="
     END         = r";"
-    LBRACE      = r"\("
-    RBRACE      = r"\)"
-    LCURLYBRACE = r"\{"
-    RCURLYBRACE = r"\}"
+    LPAREN      = r"\("
+    RPAREN      = r"\)"
+    LBRACE      = r"\{"
+    RBRACE      = r"\}"
+    COLON       = r"\:"
+    COMMA       = r"\,"
 
     literals = {}
 
@@ -77,19 +81,67 @@ class BasedParser(Parser):
     tokens = BasedLexer.tokens
     debugfile = "dist/debug"
 
-    @_("statements")
+    @_("functions")
     def program(self, p):
-        return f"{p.statements}"
+        return f"{p.functions}"
 
+    #region functions
+    @_("function functions")
+    def functions(self, p):
+        return f"{p.function}{p.functions}"
+    @_("")
+    def functions(self, p):
+        return ""
+    @_("ID LPAREN params RPAREN COLON return_type LBRACE statements RBRACE")
+    def function(self, p):
+        return f"{p.return_type} {p.ID}{p.LPAREN}{p.params}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}"
+    @_("type")
+    def return_type(self, p):
+        type_name, mapping, min, max, default = p.type
+        return f"{mapping}"
+    @_("ABYSS_TYPE")
+    def return_type(self, p):
+        return f"{p.ABYSS_TYPE}"
+    @_("param_declaration multi_params")
+    def params(self, p):
+        return f"{p.param_declaration}{p.multi_params}"
+    @_("")
+    def params(self, p):
+        return ""
+    @_("COMMA param_declaration multi_params")
+    def multi_params(self, p):
+        return f"{p.COMMA}{p.param_declaration}{p.multi_params}"
+    @_("")
+    def multi_params(self, p):
+        return ""
+    @_("type ID")
+    def param_declaration(self, p):
+        type_name, mapping, min, max, default = p.type
+        return f"{mapping} {p.ID}"
+    @_("ID LPAREN actual_params RPAREN END")
+    def function_call(self, p):
+        return f"{p.ID}{p.LPAREN}{p.actual_params}{p.RPAREN}{p.END}"
+    @_("expression multi_actual_params")
+    def actual_params(self, p):
+        return f"{p.expression}{p.multi_actual_params}"
+    @_("")
+    def actual_params(self, p):
+        return ""
+    @_("COMMA expression multi_actual_params")
+    def multi_actual_params(self, p):
+        return f"{p.COMMA}{p.expression}{p.multi_actual_params}"
+    @_("")
+    def multi_actual_params(self, p):
+        return ""
+    #endregion
 
+    #region statements
     @_("statement statements")
     def statements(self, p):
         return f"{p.statement}{p.statements}"
     @_("")
     def statements(self, p):
         return f""
-
-
     @_("expression_statement")
     def statement(self, p):
         return f"{p.expression_statement}"
@@ -108,6 +160,7 @@ class BasedParser(Parser):
     @_("END")
     def statement(self, p):
         return f"{p.END}"
+    #endregion
 
 
     @_("type ID END")
@@ -126,6 +179,7 @@ class BasedParser(Parser):
         # bindings.bind(var_name, type_name, value)            
         return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
 
+    #region expressions
     @_("expression END")
     def expression_statement(self, p):
         return f"{p.expression}{p.END}"
@@ -153,8 +207,6 @@ class BasedParser(Parser):
     @_("term")
     def arithmetic_layer(self, p):
         return f"{p.term}"
-
-
     @_("term MULTIPLICATION factor")
     def term(self,p):
         return f"{p.term}{p.MULTIPLICATION}{p.factor}"    
@@ -164,17 +216,19 @@ class BasedParser(Parser):
     @_("factor")
     def term(self,p):
         return f"{p.factor}"
-
- 
-    @_("LBRACE expression RBRACE")
+    @_("LPAREN expression RPAREN")
     def factor(self,p):
-        return f"{p.LBRACE}{p.expression}{p.RBRACE}"
+        return f"{p.LPAREN}{p.expression}{p.RPAREN}"
     @_("value")
     def factor(self,p):
         return f"{p.value}"
     @_("ID")
     def factor(self,p):
         return f"{p.ID}"
+    @_("function_call")
+    def factor(self, p):
+        return f"{p.function_call}"
+    #endregion
 
  
     @_("SIGNED_TYPE")
@@ -234,7 +288,7 @@ class BasedParser(Parser):
     @_("BOOL_TYPE")
     def type(self, p):
         return (
-            p.CHAR_TYPE,
+            p.BOOL_TYPE,
             "char",
             "a",
             "Z",
@@ -260,19 +314,19 @@ class BasedParser(Parser):
         return p.CHAR_VALUE
 
 
-    @_("WHILE LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
+    @_("WHILE LPAREN expression RPAREN LBRACE statements RBRACE")
     def while_statement(self,p):
-        return f"{p.WHILE}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
+        return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}"
 
-    @_("IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement")
+    @_("IF LPAREN expression RPAREN LBRACE statements RBRACE else_statement")
     def if_statement(self,p):
-        return f"{p.IF}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.else_statement}"
-    @_("ELSE LCURLYBRACE statements RCURLYBRACE")
+        return f"{p.IF}{p.LPAREN}{p.expression}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}{p.else_statement}"
+    @_("ELSE LBRACE statements RBRACE")
     def else_statement(self,p):
-        return f"{p.ELSE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}" 
+        return f"{p.ELSE}{p.LBRACE}{p.statements}{p.RBRACE}" 
     @_("ELSE if_statement")
     def else_statement(self,p):
-        return f"{p.ELSE}{p.if_statement}"
+        return f"{p.ELSE} {p.if_statement}"
     @_("")
     def else_statement(self,p):
         return f""
@@ -297,7 +351,8 @@ def main():
         result = parser.parse(tokens)
 
     with open("dist/out.c", "a") as c_file:
-        c_file.write(f"int main(){{{result}return 0;}}")
+        # c_file.write(f"int main(){{{result}return 0;}}")
+        c_file.write(f"{result}")
     subprocess.run(["clang-format", "-i", "dist/out.c"])
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
