@@ -41,22 +41,23 @@ LOGICAL_OPERATOR : AND | OR | NEGATION
 
 program : statements
 
-statements       : statement statements | END
-statement        : expression_statement | declaration | declaration_init | assignment | while | if | END
+statements       : statement statements | Ɛ
+statement        : expression_statement | declaration | declaration_init | assignment | while_statement | if_statement | END
 
 declaration      : type ID END
 declaration_init : type ID ASSIGN expression END
 
 assignment       : ID ASSIGN expression END
 
-while            : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
+while_statement : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
+if_statement    : IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement
+else_statement  : ELSE LCURLYBRACE statements RCURLYBRACE | ELSE if_statement | Ɛ
 
 expression_statement  : expression END
-expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
+expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer | function_grammar
+function_grammare
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
 factor                : value | ID | LBRACE expression RBRACE
 
-if   : IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
-else : ELSE_NAME LCURLYBRACE statements RCURLYBRACE | ELSE_NAME if_statement

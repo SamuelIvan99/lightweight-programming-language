@@ -1,5 +1,6 @@
 from sly import Lexer, Parser
 import os
+import subprocess
 
 class Bindings:
     def __init__(self):
@@ -27,7 +28,7 @@ bindings = Bindings()
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
-               END, COMPARATOR, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE, LOGICAL_OPERATOR,
+               END, COMPARATOR, LBRACE, RBRACE, LCURLYBRACE, RCURLYBRACE,
                WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
@@ -40,7 +41,6 @@ class BasedLexer(Lexer):
     INTEGRAL_VALUE = r"-?\d+"
     BOOL_VALUE     = r"true|false"
     CHAR_VALUE     = r"\'.\'"
-    LOGICAL_OPERATOR = r"AND|OR"
 
     WHILE = r"while"
     IF    = r"if"
@@ -75,13 +75,11 @@ class BasedLexer(Lexer):
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
+    debugfile = "dist/debug"
 
     @_("statements")
     def program(self, p):
         return f"{p.statements}"
-    @_("")
-    def program(self, p):
-        return f""
 
 
     @_("statement statements")
@@ -94,13 +92,19 @@ class BasedParser(Parser):
 
     @_("expression_statement")
     def statement(self, p):
-        return f"{p.expression_statement}\n\t"
+        return f"{p.expression_statement}"
     @_("declaration")
     def statement(self, p):
-        return f"{p.declaration}\n\t"
+        return f"{p.declaration}"
     @_("declaration_init")
     def statement(self, p):
-        return f"{p.declaration_init}\n\t"
+        return f"{p.declaration_init}"
+    @_("while_statement")
+    def statement(self, p):
+        return f"{p.while_statement}"
+    @_("if_statement")
+    def statement(self, p):
+        return f"{p.if_statement}"
     @_("END")
     def statement(self, p):
         return f"{p.END}"
@@ -109,43 +113,43 @@ class BasedParser(Parser):
     @_("type ID END")
     def declaration(self, p):
         type_name, mapping, min, max, default = p.type
-        bindings.bind(p.ID, type_name, default)
+        # bindings.bind(p.ID, type_name, default)
         return f"{mapping} {p.ID}{p.END}"
     @_("type ID ASSIGN expression END")
     def declaration_init(self, p):
         var_name = p.ID
         type_name, mapping, min, max, default = p.type
-        value = eval(p.expression)
-        if value < min or value > max:
-            print(f"ERROR: overflow detected in {type_name} {var_name} {p.ASSIGN} {value}, assigned value must be in range [{min},{max}]")
-            exit(1)
-        bindings.bind(var_name, type_name, value)            
-        return f"{mapping} {p.ID} {p.ASSIGN} {value}{p.END}"
+        value = p.expression
+        # if value < min or value > max:
+        #     print(f"ERROR: overflow detected in {type_name}{var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
+        #     exit(1)
+        # bindings.bind(var_name, type_name, value)            
+        return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
 
     @_("expression END")
     def expression_statement(self, p):
         return f"{p.expression}{p.END}"
     @_("expression AND comparison_layer")
     def expression(self, p):
-        return f"{p.expression} {p.AND} {p.comparison_layer}" 
+        return f"{p.expression}{p.AND}{p.comparison_layer}" 
     @_("expression OR comparison_layer")
     def expression(self, p):
-        return f"{p.expression} {p.OR} {p.comparison_layer}" 
+        return f"{p.expression}{p.OR}{p.comparison_layer}" 
     @_("comparison_layer")
     def expression(self, p):
         return f"{p.comparison_layer}" 
     @_("comparison_layer COMPARATOR arithmetic_layer")
     def comparison_layer(self, p):
-        return f"{p.comparison_layer} {p.COMPARATOR} {p.arithmetic_layer}"
+        return f"{p.comparison_layer}{p.COMPARATOR}{p.arithmetic_layer}"
     @_("arithmetic_layer")
     def comparison_layer(self, p):
         return f"{p.arithmetic_layer}"
     @_("arithmetic_layer PLUS term")
     def arithmetic_layer(self, p):
-        return f"{p.arithmetic_layer} {p.PLUS} {p.term}"
+        return f"{p.arithmetic_layer}{p.PLUS}{p.term}"
     @_("arithmetic_layer MINUS term")
     def arithmetic_layer(self, p):
-        return f"{p.arithmetic_layer} {p.MINUS} {p.term}"
+        return f"{p.arithmetic_layer}{p.MINUS}{p.term}"
     @_("term")
     def arithmetic_layer(self, p):
         return f"{p.term}"
@@ -153,10 +157,10 @@ class BasedParser(Parser):
 
     @_("term MULTIPLICATION factor")
     def term(self,p):
-        return f"{p.term} {p.MULTIPLICATION} {p.factor}"    
+        return f"{p.term}{p.MULTIPLICATION}{p.factor}"    
     @_("term DIVISION factor")
     def term(self,p):
-        return f"{p.term} {p.DIVISION} {p.factor}" 
+        return f"{p.term}{p.DIVISION}{p.factor}" 
     @_("factor")
     def term(self,p):
         return f"{p.factor}"
@@ -256,39 +260,22 @@ class BasedParser(Parser):
         return p.CHAR_VALUE
 
 
-    # @_("expression logical_operator_or_comparator expression")
-    # def expression(self,p):
-    #     return f"{p.expression0}{p.logical_operator_or_comparator}{p.expression1}"
-    
-    # @_("LOGICAL_OPERATOR")
-    # def logical_operator_or_comparator(self,p):
-    #     if p.LOGICAL_OPERATOR == "AND":
-    #         logical_operator = "&&"
-    #     elif p.LOGICAL_OPERATOR == "OR":
-    #         logical_operator = "||"
-    #     elif p.LOGICAL_OPERATOR == "NOT":
-    #         logical_operator = "!"
-    #     return logical_operator
-    
-    # @_("COMPARATOR")
-    # def logical_operator_or_comparator(self,p):
-    #     return p.COMPARATOR
+    @_("WHILE LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
+    def while_statement(self,p):
+        return f"{p.WHILE}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
 
-    # @_("WHILE_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE")
-    # def WHILE(self,p):
-    #     return f"{p.WHILE_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}\n    {p.statements}    {p.RCURLYBRACE}"
-    
-    # @_("IF_NAME LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE ELSE")
-    # def IF(self,p):
-    #     return f"{p.IF_NAME}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.ELSE}"
-    
-    # @_("ELSE_NAME LCURLYBRACE statements RCURLYBRACE")
-    # def ELSE(self,p):
-    #     return f"{p.ELSE_NAME}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}"
-    
-    # @_("ELSE_NAME IF")
-    # def ELSE(self,p):
-    #     return f"{p.ELSE_NAME}{p.IF}"
+    @_("IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement")
+    def if_statement(self,p):
+        return f"{p.IF}{p.LBRACE}{p.expression}{p.RBRACE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}{p.else_statement}"
+    @_("ELSE LCURLYBRACE statements RCURLYBRACE")
+    def else_statement(self,p):
+        return f"{p.ELSE}{p.LCURLYBRACE}{p.statements}{p.RCURLYBRACE}" 
+    @_("ELSE if_statement")
+    def else_statement(self,p):
+        return f"{p.ELSE}{p.if_statement}"
+    @_("")
+    def else_statement(self,p):
+        return f""
 
 def main():
     # For transpiled C code
@@ -310,7 +297,8 @@ def main():
         result = parser.parse(tokens)
 
     with open("dist/out.c", "a") as c_file:
-        c_file.write(f"int main()\n{{\n\t{result}\n\n\treturn 0;\n}}")
+        c_file.write(f"int main(){{{result}return 0;}}")
+    subprocess.run(["clang-format", "-i", "dist/out.c"])
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
