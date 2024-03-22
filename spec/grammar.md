@@ -1,7 +1,7 @@
 # Grammar
 
 ```
-
+# Lexical Grammar
 SIGNED_TYPE   : i64 | i32 | i16 | i8 | isize
 UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
@@ -17,28 +17,30 @@ CHAR_VALUE     : \'.\'
 
 value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
 
-ID : [a-zA-Z_][a-zA-Z0-9_\-]*
-
 WHILE  : while
 IF     : if
 ELSE   : else
 
-
-ASSIGN : =
-END    : ;
-LBRACE : (
-RBRACE : )
-LCURLYBRACE : {
-RCURLYBRACE : }
-
+AND            : &&
+OR             : ||
 MINUS          : -
 PLUS           : +
 DIVISION       : /
 MULTIPLICATION : *
 
-COMPARATOR       : == | != | < | > | <= | >=
-LOGICAL_OPERATOR : AND | OR | NEGATION
+ID : [a-zA-Z_][a-zA-Z0-9_\-]*
 
+COMPARATOR  : == | != | < | > | <= | >=
+ASSIGN      : =
+END         : ;
+LBRACE      : (
+RBRACE      : )
+LCURLYBRACE : {
+RCURLYBRACE : }
+COMMENT     : #
+
+
+# Syntactical Grammar
 program : statements
 
 statements       : statement statements | Ɛ
@@ -54,10 +56,8 @@ if_statement    : IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE
 else_statement  : ELSE LCURLYBRACE statements RCURLYBRACE | ELSE if_statement | Ɛ
 
 expression_statement  : expression END
-expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer | function_grammar
-function_grammare
+expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
 factor                : value | ID | LBRACE expression RBRACE
-
