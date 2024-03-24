@@ -1,5 +1,17 @@
-i32 x = 8;
-x = 8;
-while ( x != 5 AND x <= 10) {
-    x = 5;
-};
+my_fn(i32 x, i64 y):bool{
+    i32 z = 10;
+
+    if(z == 10){
+        bool result = true;
+    }
+    else if(true == false){
+
+    }
+    else {}
+}
+
+main():i16{
+    my_fn(2+2, 1231234);
+    i32 x = 10;
+}
+

@@ -1,64 +1,77 @@
 # Grammar
 
 ```
-
-INTEGRAL_TYPE : i64 | i32 | i16 | i8 | isize | u64 | u32 | u16 | u8 | usize
+# Lexical Grammar
+SIGNED_TYPE   : i64 | i32 | i16 | i8 | isize
+UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
-type          : INTEGRAL_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
 
-INT_VALUE       : -?\d+
-FLOAT_VALUE     : -?\d+(\.\d+)?
-BOOL_VALUE      : true | false
-CHAR_VALUE      : \".*\"
-value           : INT_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
+ABYSS_TYPE    = abyss
 
-<!-- name of the variable, class, function -->
+INTEGRAL_VALUE : -?\d+
+FLOAT_VALUE    : -?\d+(\.\d+)?
+BOOL_VALUE     : true | false
+CHAR_VALUE     : \'.\'
+
+value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+
+WHILE  : while
+IF     : if
+ELSE   : else
+
+AND            : &&
+OR             : ||
+MINUS          : -
+PLUS           : +
+DIVISION       : /
+MULTIPLICATION : *
+
 ID : [a-zA-Z_][a-zA-Z0-9_\-]*
 
-ASSIGN : =
-END    : ;
-LBRACE : (
-RBRACE : )
+COMPARATOR  : == | != | < | > | <= | >=
+ASSIGN      : =
+END         : ;
+LBRACE      : (
+RBRACE      : )
 LCURLYBRACE : {
 RCURLYBRACE : }
-
-COMPARATORS          : == | != | < | > | <= | >=
-LOGICAL_OPERATORS    : AND | OR | NEGATION
-logical_operators_or_comparators : LOGICAL_OPERATORS | COMPARATORS
-expression : expression + term | expression - term
-expression : expression LOGICAL_OPERATORS_OR_COMPARATORS expression
-expression : term
-term       : term * factor | term / factor | factor
-factor     : value | ID | LBRACE expression RBRACE
-
-program     : statements
-statements  : statement END statements | Ɛ
-statement   : declaration | var_assignment | WHILE | Ɛ
-declaration : type ID initializer
-initializer : ASSIGN value | Ɛ
-
-var_assignment : ID ASSIGN value
-
-expression
---------------------------- WHILE STATEMENT
-
-WHILE              : WHILE_NAME LBRACE conditions RBRACE LCURLYBRACE statements RCURLYBRACE
-conditions         : single_condition | multiple_condition
-single_condition   : term
-multiple_condition : term COMPARATOR term logical_operation
-logical_operation  : LOGICAL_OPERATOR term COMPARATOR term logical_operation | Ɛ
-
-WHILE_NAME         : while
+COMMENT     : #
+COLON       : :
+COMMA       : ,
 
 
+# Syntactical Grammar
+program : functions
 
-<!-- These namings can be subject to change. If we change something, don't forget to change the implementation as well, so it represents the grammar correctly, to avoid confusion. (From looking at the grammar here, and looking at mismatching names in the implementation.) -->
---------------------------
+functions : function functions | Ɛ
+function          : ID LBRACE params RBRACE COLON return_type LCURLYBRACE statements RCURLYBRACE
+return_type       : type | ABYSS_TYPE
+params            : param_declaration multi_params | Ɛ
+multi_params      : COMMA param_declaration multi_params | Ɛ
+param_declaration : type ID
 
---------------------- IF statement
-if_statement : "if" LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement?
-else_statement : "else" LCURLYBRACE statements RCURLYBRACE | "else" if_statement
+function_call : ID LPAREN actual_params RPAREN
+actual_params : expression multi_actual_params | Ɛ
+multi_actual_params : COMMA expression multi_actual_params | Ɛ
 
-```
+statements       : statement statements | Ɛ
+statement        : expression_statement | declaration | declaration_init | assignment | while_statement | if_statement | END
+
+declaration      : type ID END
+declaration_init : type ID ASSIGN expression END
+
+assignment       : ID ASSIGN expression END
+
+while_statement : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
+if_statement    : IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement
+else_statement  : ELSE LCURLYBRACE statements RCURLYBRACE | ELSE if_statement | Ɛ
+
+expression_statement  : expression END
+expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
+comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
+artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
+term                  : term MULTIPLICATION factor | term DIVISION factor | factor
+factor                : value | ID | LPAREN expression LPAREN | function_call
