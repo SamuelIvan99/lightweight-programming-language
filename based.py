@@ -151,6 +151,9 @@ class BasedParser(Parser):
     @_("declaration_init")
     def statement(self, p):
         return f"{p.declaration_init}"
+    @_("scope")
+    def statement(self,p):
+        return p.scope
     @_("while_statement")
     def statement(self, p):
         return f"{p.while_statement}"
@@ -314,16 +317,20 @@ class BasedParser(Parser):
         return p.CHAR_VALUE
 
 
-    @_("WHILE LPAREN expression RPAREN LBRACE statements RBRACE")
-    def while_statement(self,p):
-        return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}"
+    @_("LBRACE statements RBRACE")
+    def scope(self,p):
+        return f"{p.LBRACE}{p.statements}{p.RBRACE}"
 
-    @_("IF LPAREN expression RPAREN LBRACE statements RBRACE else_statement")
+    @_("WHILE LPAREN expression RPAREN scope")
+    def while_statement(self,p):
+        return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}"
+
+    @_("IF LPAREN expression RPAREN scope else_statement")
     def if_statement(self,p):
-        return f"{p.IF}{p.LPAREN}{p.expression}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}{p.else_statement}"
-    @_("ELSE LBRACE statements RBRACE")
+        return f"{p.IF}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}{p.else_statement}"
+    @_("ELSE scope")
     def else_statement(self,p):
-        return f"{p.ELSE}{p.LBRACE}{p.statements}{p.RBRACE}" 
+        return f"{p.ELSE}{p.scope}" 
     @_("ELSE if_statement")
     def else_statement(self,p):
         return f"{p.ELSE} {p.if_statement}"
@@ -353,7 +360,7 @@ def main():
     with open("dist/out.c", "a") as c_file:
         # c_file.write(f"int main(){{{result}return 0;}}")
         c_file.write(f"{result}")
-    subprocess.run(["clang-format", "-i", "dist/out.c"])
+    #subprocess.run(["clang-format", "-i", "dist/out.c"])
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
