@@ -92,9 +92,9 @@ class BasedParser(Parser):
     @_("")
     def functions(self, p):
         return ""
-    @_("ID LPAREN params RPAREN COLON return_type LBRACE statements RBRACE")
+    @_("ID LPAREN params RPAREN COLON return_type scope")
     def function(self, p):
-        return f"{p.return_type} {p.ID}{p.LPAREN}{p.params}{p.RPAREN}{p.LBRACE}{p.statements}{p.RBRACE}"
+        return f"{p.return_type} {p.ID}{p.LPAREN}{p.params}{p.RPAREN}{p.scope}"
     @_("type")
     def return_type(self, p):
         type_name, mapping, min, max, default = p.type
@@ -360,7 +360,7 @@ def main():
     with open("dist/out.c", "a") as c_file:
         # c_file.write(f"int main(){{{result}return 0;}}")
         c_file.write(f"{result}")
-    #subprocess.run(["clang-format", "-i", "dist/out.c"])
+    subprocess.run(["clang-format", "-i", "dist/out.c"])
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
