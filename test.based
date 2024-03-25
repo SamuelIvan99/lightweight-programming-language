@@ -8,6 +8,8 @@ my_fn(i32 x, i64 y):bool{
 
     }
     else {}
+
+    {i32 x = 2;}
 }
 
 main():i16{

@@ -46,8 +46,9 @@ COMMA       : ,
 # Syntactical Grammar
 program : functions
 
-functions : function functions | Ɛ
-function          : ID LBRACE params RBRACE COLON return_type LCURLYBRACE statements RCURLYBRACE
+scope             : LBRACE statements RBRACE
+functions         : function functions | Ɛ
+function          : ID LBRACE params RBRACE COLON return_type scope
 return_type       : type | ABYSS_TYPE
 params            : param_declaration multi_params | Ɛ
 multi_params      : COMMA param_declaration multi_params | Ɛ
@@ -66,8 +67,8 @@ declaration_init : type ID ASSIGN expression END
 assignment       : ID ASSIGN expression END
 
 while_statement : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
-if_statement    : IF LBRACE expression RBRACE LCURLYBRACE statements RCURLYBRACE else_statement
-else_statement  : ELSE LCURLYBRACE statements RCURLYBRACE | ELSE if_statement | Ɛ
+if_statement    : IF LBRACE expression RBRACE scope else_statement
+else_statement  : ELSE scope | ELSE if_statement | Ɛ
 
 expression_statement  : expression END
 expression            : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
@@ -75,3 +76,4 @@ comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmeti
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
 factor                : value | ID | LPAREN expression LPAREN | function_call
+```
