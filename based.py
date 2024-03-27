@@ -81,6 +81,9 @@ class BasedParser(Parser):
     tokens = BasedLexer.tokens
     debugfile = "dist/debug"
 
+    def __init__(self):
+        self.scopesList = []
+
     @_("functions")
     def program(self, p):
         return f"{p.functions}"
@@ -168,11 +171,21 @@ class BasedParser(Parser):
 
     @_("type ID END")
     def declaration(self, p):
+        var_name = p.ID
+        if(var_name in self.scopesList[-1]):
+            print(f"ERROR: redefinition of {var_name}")
+            exit(1)
+        self.scopesList[-1].append(var_name)
         type_name, mapping, min, max, default = p.type
         # bindings.bind(p.ID, type_name, default)
         return f"{mapping} {p.ID}{p.END}"
     @_("type ID ASSIGN expression END")
     def declaration_init(self, p):
+        var_name = p.ID
+        if(var_name in self.scopesList[-1]):
+            print(f"ERROR: redefinition of {var_name}")
+            exit(1)
+        self.scopesList[-1].append(var_name)
         var_name = p.ID
         type_name, mapping, min, max, default = p.type
         value = p.expression
@@ -317,9 +330,18 @@ class BasedParser(Parser):
         return p.CHAR_VALUE
 
 
-    @_("LBRACE statements RBRACE")
+    @_("LBRACE new_scope statements pop_scope RBRACE")
     def scope(self,p):
         return f"{p.LBRACE}{p.statements}{p.RBRACE}"
+
+    @_('')
+    def new_scope(self,p):
+        newScope = []
+        self.scopesList.append(newScope)
+
+    @_('')
+    def pop_scope(self,p):
+        self.scopesList.pop()
 
     @_("WHILE LPAREN expression RPAREN scope")
     def while_statement(self,p):
