@@ -28,7 +28,7 @@ bindings = Bindings()
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
-               END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN,
+               END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
                COLON, COMMA, ABYSS_TYPE }
 
@@ -62,6 +62,8 @@ class BasedLexer(Lexer):
     END         = r";"
     LPAREN      = r"\("
     RPAREN      = r"\)"
+    LSBRACKET   = r"\["
+    RSBRACKET   = r"\]"
     LBRACE      = r"\{"
     RBRACE      = r"\}"
     COLON       = r"\:"
@@ -82,7 +84,11 @@ class BasedParser(Parser):
     debugfile = "dist/debug"
 
     def __init__(self):
-        self.scopesList = []
+        globalScope = []
+        self.scopesList = [globalScope]
+
+        globalArrayScope = []
+        self.arrayScopeList = [globalArrayScope]
 
     @_("functions")
     def program(self, p):
@@ -154,6 +160,18 @@ class BasedParser(Parser):
     @_("declaration_init")
     def statement(self, p):
         return f"{p.declaration_init}"
+    @_("assignment")
+    def statement(self, p):
+        return f"{p.assignment}"
+    @_("array_create")
+    def statement(self, p):
+        return f"{p.array_create}"
+    @_("array_assign")
+    def statement(self, p):
+        return f"{p.array_assign}"
+    @_("array_get")
+    def statement(self, p):
+        return f"{p.array_get}"
     @_("scope")
     def statement(self,p):
         return p.scope
@@ -178,7 +196,8 @@ class BasedParser(Parser):
         self.scopesList[-1].append(var_name)
         type_name, mapping, min, max, default = p.type
         # bindings.bind(p.ID, type_name, default)
-        return f"{mapping} {p.ID}{p.END}"
+        return f"{mapping} {var_name}{p.END}"
+
     @_("type ID ASSIGN expression END")
     def declaration_init(self, p):
         var_name = p.ID
@@ -186,14 +205,66 @@ class BasedParser(Parser):
             print(f"ERROR: redefinition of {var_name}")
             exit(1)
         self.scopesList[-1].append(var_name)
-        var_name = p.ID
         type_name, mapping, min, max, default = p.type
         value = p.expression
         # if value < min or value > max:
         #     print(f"ERROR: overflow detected in {type_name}{var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
         #     exit(1)
         # bindings.bind(var_name, type_name, value)            
-        return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
+        return f"{mapping} {var_name}{p.ASSIGN}{value}{p.END}"
+
+    @_("ID ASSIGN expression END")
+    def assignment(self, p):
+        var_name = p.ID
+        if(var_name not in self.scopesList[-1]):
+            print(f"ERROR: variable: {var_name} not found")
+            exit(1)
+        value = p.expression          
+        return f"{var_name}{p.ASSIGN}{value}{p.END}"
+    
+    @_("type ID LSBRACKET term RSBRACKET END")
+    def array_create(self, p):
+        var_name = p.ID
+        type_name, mapping, min, max, default = p.type
+        arr = (var_name,mapping)
+        if(arr in self.arrayScopeList[-1] or arr[0] in self.scopesList[-1]):
+            print(f"ERROR: redefinition of {arr[0]}")
+            exit(1)
+        self.arrayScopeList[-1].append(arr)
+        self.scopesList[-1].append(arr[0])
+        value = p.term
+        return f"Array {arr[0]}{p.END} {arr[0]}.size = {value}{p.END} {arr[0]}.value = malloc(sizeof({arr[1]})*{value}){p.END}"
+
+    @_("ID LSBRACKET term RSBRACKET ASSIGN expression END")
+    def array_assign(self, p):
+        var_name = p.ID
+        flag = 1
+        arr = ("","")
+        for i in self.arrayScopeList[-1]:
+            if(i[0] == var_name):
+                flag = 0
+                arr = i
+                break
+        if(flag):
+            print(f"ERROR: variable: {var_name} not found")
+            exit(1)
+        value = p.expression 
+        return f"(({arr[1]}*)getElement({arr[0]},{p.term}))[{p.term}]{p.ASSIGN}{value}{p.END}"
+
+    @_("ID LSBRACKET term RSBRACKET")
+    def array_get(self, p):
+        var_name = p.ID
+        flag = 1
+        arr = ("","")
+        for i in self.arrayScopeList[-1]:
+            if(i[0] == var_name):
+                flag = 0
+                arr = i
+                break
+        if(flag):
+            print(f"ERROR: variable: {var_name} not found")
+            exit(1)
+        return f"(({arr[1]}*)getElement({arr[0]},{p.term}))[{p.term}]"
 
     #region expressions
     @_("expression END")
@@ -332,16 +403,23 @@ class BasedParser(Parser):
 
     @_("LBRACE new_scope statements pop_scope RBRACE")
     def scope(self,p):
-        return f"{p.LBRACE}{p.statements}{p.RBRACE}"
+        return f"{p.LBRACE}{p.statements}{p.pop_scope}{p.RBRACE}"
 
     @_('')
     def new_scope(self,p):
         newScope = []
+        newArrayScope = []
         self.scopesList.append(newScope)
+        self.arrayScopeList.append(newArrayScope)
 
     @_('')
     def pop_scope(self,p):
+        s = f""
+        for i in self.arrayScopeList[-1]:
+            s += f"free({i[0]}.value);\n"
         self.scopesList.pop()
+        self.arrayScopeList.pop()
+        return s
 
     @_("WHILE LPAREN expression RPAREN scope")
     def while_statement(self,p):
@@ -381,7 +459,7 @@ def main():
 
     with open("dist/out.c", "a") as c_file:
         # c_file.write(f"int main(){{{result}return 0;}}")
-        c_file.write(f"{result}")
+        c_file.write(f"#include \"array.h\"\n\n{result}")
     subprocess.run(["clang-format", "-i", "dist/out.c"])
     os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
