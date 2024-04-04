@@ -15,5 +15,7 @@ my_fn(i32 x, i64 y):bool{
 main():i16{
     my_fn(2+2, 1231234);
     i32 x = 10;
+
+    str a = "Hey there";
 }
 

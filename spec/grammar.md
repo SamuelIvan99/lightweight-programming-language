@@ -7,16 +7,18 @@ UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
+STRING_TYPE   : str
 
-type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
+type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | STRING_TYPE
 ABYSS_TYPE    = abyss
 
 INTEGRAL_VALUE : -?\d+
 FLOAT_VALUE    : -?\d+(\.\d+)?
 BOOL_VALUE     : true | false
 CHAR_VALUE     : \'.\'
+STRING_VALUE   : \"[^\"]*\"
 
-value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE | STRING_VALUE
 
 WHILE  : while
 IF     : if
