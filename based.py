@@ -163,15 +163,7 @@ class BasedParser(Parser):
     @_("assignment")
     def statement(self, p):
         return f"{p.assignment}"
-    @_("array_create")
-    def statement(self, p):
-        return f"{p.array_create}"
-    @_("array_assign")
-    def statement(self, p):
-        return f"{p.array_assign}"
-    @_("array_get")
-    def statement(self, p):
-        return f"{p.array_get}"
+    
     @_("scope")
     def statement(self,p):
         return p.scope
@@ -223,7 +215,7 @@ class BasedParser(Parser):
         return f"{var_name}{p.ASSIGN}{value}{p.END}"
     
     @_("type ID LSBRACKET term RSBRACKET END")
-    def array_create(self, p):
+    def declaration(self, p):
         var_name = p.ID
         type_name, mapping, min, max, default = p.type
         arr = (var_name,mapping)
@@ -235,8 +227,8 @@ class BasedParser(Parser):
         value = p.term
         return f"Array {arr[0]}{p.END} {arr[0]}.size = {value}{p.END} {arr[0]}.value = malloc(sizeof({arr[1]})*{value}){p.END}"
 
-    @_("ID LSBRACKET term RSBRACKET ASSIGN expression END")
-    def array_assign(self, p):
+    @_("ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression END")
+    def assignment(self, p):
         var_name = p.ID
         flag = 1
         arr = ("","")
@@ -248,28 +240,27 @@ class BasedParser(Parser):
         if(flag):
             print(f"ERROR: variable: {var_name} not found")
             exit(1)
-        value = p.expression 
-        return f"(({arr[1]}*)getElement({arr[0]},{p.term}))[{p.term}]{p.ASSIGN}{value}{p.END}"
-
-    @_("ID LSBRACKET term RSBRACKET")
-    def array_get(self, p):
-        var_name = p.ID
-        flag = 1
-        arr = ("","")
-        for i in self.arrayScopeList[-1]:
-            if(i[0] == var_name):
-                flag = 0
-                arr = i
-                break
-        if(flag):
-            print(f"ERROR: variable: {var_name} not found")
-            exit(1)
-        return f"(({arr[1]}*)getElement({arr[0]},{p.term}))[{p.term}]"
+        value = p.expression
+        return f"(({arr[1]}*)getElement({arr[0]},{p.arithmetic_layer}))[{p.arithmetic_layer}]{p.ASSIGN}{value}{p.END}"
 
     #region expressions
     @_("expression END")
     def expression_statement(self, p):
         return f"{p.expression}{p.END}"
+    @_("ID LSBRACKET arithmetic_layer RSBRACKET")
+    def expression(self, p):
+        var_name = p.ID
+        flag = 1
+        arr = ("","")
+        for i in self.arrayScopeList[-1]:
+            if(i[0] == var_name):
+                flag = 0
+                arr = i
+                break
+        if(flag):
+            print(f"ERROR: variable: {var_name} not found")
+            exit(1)
+        return f"(({arr[1]}*)getElement({arr[0]},{p.arithmetic_layer}))[{p.arithmetic_layer}]"
     @_("expression AND comparison_layer")
     def expression(self, p):
         return f"{p.expression}{p.AND}{p.comparison_layer}" 
