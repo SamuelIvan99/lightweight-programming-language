@@ -29,7 +29,7 @@ class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
                END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN,
-               WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
+               WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
                COLON, COMMA, ABYSS_TYPE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
@@ -45,6 +45,7 @@ class BasedLexer(Lexer):
     CHAR_VALUE     = r"\'.\'"
 
     WHILE = r"while"
+    FOR   = r"for"
     IF    = r"if"
     ELSE  = r"else"
 
@@ -157,6 +158,9 @@ class BasedParser(Parser):
     @_("while_statement")
     def statement(self, p):
         return f"{p.while_statement}"
+    @_("for_statement")
+    def statement(self, p):
+        return f"{p.for_statement}"
     @_("if_statement")
     def statement(self, p):
         return f"{p.if_statement}"
@@ -324,6 +328,10 @@ class BasedParser(Parser):
     @_("WHILE LPAREN expression RPAREN scope")
     def while_statement(self,p):
         return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}"
+
+    @_("FOR LPAREN declaration_init expression END expression RPAREN scope")
+    def for_statement(self,p):
+        return f"{p.FOR}{p.LPAREN}{p.declaration_init}{p.expression0}{p.END}{p.expression1}{p.RPAREN}{p.scope}"
 
     @_("IF LPAREN expression RPAREN scope else_statement")
     def if_statement(self,p):

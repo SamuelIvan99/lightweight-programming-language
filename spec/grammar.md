@@ -19,6 +19,7 @@ CHAR_VALUE     : \'.\'
 value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
 
 WHILE  : while
+FOR    : for
 IF     : if
 ELSE   : else
 
@@ -59,7 +60,7 @@ actual_params : expression multi_actual_params | Ɛ
 multi_actual_params : COMMA expression multi_actual_params | Ɛ
 
 statements       : statement statements | Ɛ
-statement        : expression_statement | declaration | declaration_init | assignment | while_statement | if_statement | END
+statement        : expression_statement | declaration | declaration_init | assignment | while_statement | for_statement | if_statement | END
 
 declaration      : type ID END
 declaration_init : type ID ASSIGN expression END
@@ -67,6 +68,7 @@ declaration_init : type ID ASSIGN expression END
 assignment       : ID ASSIGN expression END
 
 while_statement : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
+for_statement   : FOR LPAREN declaration_init expression END expression RPAREN scope
 if_statement    : IF LBRACE expression RBRACE scope else_statement
 else_statement  : ELSE scope | ELSE if_statement | Ɛ
 
