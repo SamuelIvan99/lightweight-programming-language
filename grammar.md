@@ -18,6 +18,8 @@ CHAR_VALUE     : \'.\'
 
 value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
 
+array_value    : ID LSBRACKET artihmetic_layer RSBRACKET
+
 WHILE  : while
 IF     : if
 ELSE   : else
@@ -61,10 +63,10 @@ multi_actual_params : COMMA expression multi_actual_params | Ɛ
 statements       : statement statements | Ɛ
 statement        : expression_statement | declaration | declaration_init | assignment | while_statement | if_statement | END
 
-declaration      : type ID END
+declaration      : type ID END | type ID LSBRACKET term RSBRACKET END
 declaration_init : type ID ASSIGN expression END
 
-assignment       : ID ASSIGN expression END
+assignment       : ID ASSIGN expression END | ID LSBRACKET term RSBRACKET ASSIGN expression END
 
 while_statement : WHILE LBRACE expression RBRACE LCURCLYBRACE statements RCURLYBRACE
 if_statement    : IF LBRACE expression RBRACE scope else_statement
@@ -75,5 +77,5 @@ expression            : expression AND comparison_layer | expression OR comparis
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
-factor                : value | ID | LPAREN expression LPAREN | function_call
+factor                : value | ID | LPAREN expression LPAREN | function_call | array_value
 ```

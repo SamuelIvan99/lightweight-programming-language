@@ -22,7 +22,7 @@ Signed and unsigned refer to whether it’s possible for the number to be negati
 | i16      | 16      |
 | i32      | 32      |
 | i64      | 64      |
-| iSize    | arch\*  |
+| isize    | arch\*  |
 
 #### Unsigned
 
@@ -32,7 +32,7 @@ Signed and unsigned refer to whether it’s possible for the number to be negati
 | u16      | 16      |
 | u32      | 32      |
 | u64      | 64      |
-| uSize    | arch\*  |
+| usize    | arch\*  |
 
 \* Types depend on the architecture of the computer program is running on. 64 bits if on a 64-bit architecture and 32 bits if on a 32-bit architecture.
 
