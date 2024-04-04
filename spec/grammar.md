@@ -1,15 +1,13 @@
-# Grammar
-
-```
 # Lexical Grammar
+```
 SIGNED_TYPE   : i64 | i32 | i16 | i8 | isize
 UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
+ABYSS_TYPE    : abyss
 
 type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
-ABYSS_TYPE    = abyss
 
 INTEGRAL_VALUE : -?\d+
 FLOAT_VALUE    : -?\d+(\.\d+)?
@@ -41,9 +39,10 @@ RCURLYBRACE : }
 COMMENT     : #
 COLON       : :
 COMMA       : ,
-
+```
 
 # Syntactical Grammar
+```
 program : functions
 
 scope             : LBRACE statements RBRACE
