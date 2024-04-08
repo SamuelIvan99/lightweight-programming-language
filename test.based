@@ -18,7 +18,7 @@ main():i16{
     i32 x = 10;
     while (2<3) {}
     for(i32 i = 1;i<x;2+2) {
-        i32 new_var = 'c';
+        char new_var = 'c';
     }
 
 }
