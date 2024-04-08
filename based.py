@@ -30,7 +30,7 @@ class BasedLexer(Lexer):
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, ID, ASSIGN,
                END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, ABYSS_TYPE }
+               COLON, COMMA, ABYSS_TYPE, STRING_TYPE, STRING_VALUE}
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -38,11 +38,13 @@ class BasedLexer(Lexer):
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
     ABYSS_TYPE    = r"abyss"
+    STRING_TYPE   = r"str"
 
     FLOAT_VALUE    = r"-?\d+\.\d+"
     INTEGRAL_VALUE = r"-?\d+"
     BOOL_VALUE     = r"true|false"
     CHAR_VALUE     = r"\'.\'"
+    STRING_VALUE   = r"\"[^\"]*\""
 
     WHILE = r"while"
     IF    = r"if"
@@ -81,7 +83,7 @@ class BasedLexer(Lexer):
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
-    debugfile = "dist/debug"
+    #debugfile = "dist/debug"
 
     def __init__(self):
         globalScope = []
@@ -202,8 +204,11 @@ class BasedParser(Parser):
         # if value < min or value > max:
         #     print(f"ERROR: overflow detected in {type_name}{var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
         #     exit(1)
-        # bindings.bind(var_name, type_name, value)            
-        return f"{mapping} {var_name}{p.ASSIGN}{value}{p.END}"
+        # bindings.bind(var_name, type_name, value)
+        if type_name == "str":
+            return f"{mapping} {p.ID}[]{p.ASSIGN}{value}{p.END}"
+        else:        
+            return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
 
     @_("ID ASSIGN expression END")
     def assignment(self, p):
@@ -428,6 +433,24 @@ class BasedParser(Parser):
     @_("")
     def else_statement(self,p):
         return f""
+    
+    @_("STRING_VALUE")
+    def value(self, p):
+        return p.STRING_VALUE
+    
+    @_("STRING_TYPE")
+    def type(self, p):
+        return (
+            p.STRING_TYPE,
+            "char",
+            "a",
+            "Z",
+            "0"
+        )
+    
+    # @_("STRING_TYPE ID ASSIGN STRING_VALUE END")
+    # def declaration_init(self, p):
+    #     return f"char {p.ID}[] {p.ASSIGN} {p.STRING_VALUE}{p.END}"
 
 def main():
     # For transpiled C code

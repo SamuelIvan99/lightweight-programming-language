@@ -6,15 +6,17 @@ FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
 ABYSS_TYPE    : abyss
+STRING_TYPE   : str
 
-type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE
+type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | STRING_TYPE
 
 INTEGRAL_VALUE : -?\d+
 FLOAT_VALUE    : -?\d+(\.\d+)?
 BOOL_VALUE     : true | false
 CHAR_VALUE     : \'.\'
+STRING_VALUE   : \"[^\"]*\"
 
-value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE
+value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE | STRING_VALUE
 
 array_value    : ID LSBRACKET artihmetic_layer RSBRACKET
 
@@ -76,5 +78,5 @@ expression            : expression AND comparison_layer | expression OR comparis
 comparison_layer      : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer      : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                  : term MULTIPLICATION factor | term DIVISION factor | factor
-factor                : value | ID | LPAREN expression LPAREN | function_call | array_value
+factor                : value | array_value | ID | LPAREN expression LPAREN | function_call
 ```
