@@ -51,16 +51,16 @@ COMMA       : ,
 ```
 program : functions
 
-index               : ID | array_index
-array_index         : ID LSBRACKET artihmetic_layer RSBRACKET
+var_name            : ID | array_name
+array_name          : ID LSBRACKET arithmetic_layer RSBRACKET
 
 functions           : function functions | Ɛ
 function            : ID LPAREN formal_params RPAREN COLON type scope
 
-formal_params       : type index multi_params | Ɛ
-multi_formal_params : COMMA type index multi_formal_params | Ɛ
+formal_params       : type var_name multi_params | Ɛ
+multi_formal_params : COMMA type var_name multi_formal_params | Ɛ
 
-function_call       : index LPAREN actual_params RPAREN
+function_call       : ID LPAREN actual_params RPAREN
 
 actual_params       : expression multi_actual_params | Ɛ
 multi_actual_params : COMMA expression multi_actual_params | Ɛ
@@ -70,21 +70,21 @@ scope               : LBRACE statements RBRACE
 statements          : statement statements | Ɛ
 statement           : expression END | declaration END | declaration_init END | assignment END | while_statement | if_statement | END
 
-declaration         : index COLON type
-declaration_init    : index COLON type ASSIGN expression
+declaration         : var_name COLON type
+declaration_init    : var_name COLON type ASSIGN expression
 
-assignment          : index ASSIGN expression
+assignment          : var_name ASSIGN expression
 
 while_statement     : WHILE LPAREN expression RPAREN scope
 if_statement        : IF LPAREN expression RPAREN scope else_statement
 else_statement      : ELSE scope | ELSE if_statement | Ɛ
 
-insertions          : index INSERTION expression multi_insertions | Ɛ
+insertions          : var_name INSERTION expression multi_insertions | Ɛ
 multi_insertions    : INSERTION expression multi_insertions | Ɛ
 
 expression          : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
 comparison_layer    : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
 artihmetic_layer    : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
 term                : term MULTIPLICATION factor | term DIVISION factor | factor
-factor              : value | index | LPAREN expression LPAREN | function_call
+factor              : value | var_name | LPAREN expression LPAREN | function_call
 ```

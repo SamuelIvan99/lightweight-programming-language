@@ -83,7 +83,7 @@ class BasedLexer(Lexer):
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
-    #debugfile = "dist/debug"
+    debugfile = "dist/debug"
 
     def __init__(self):
         globalScope = []
@@ -95,6 +95,17 @@ class BasedParser(Parser):
     @_("functions")
     def program(self, p):
         return f"{p.functions}"
+
+    @_("ID")
+    def var_name(self, p):
+        return f"{p.ID}"
+    @_("array_index")
+    def var_name(self, p):
+        return f"{p.array_index}"
+
+    @_("ID LSBRACKET arithmetic_layer RSBRACKET")
+    def array_index(self,p):
+        return f"{p.ID}{p.LSBRACKET}{p.arithmetic_layer}{p.RSBRACKET}"
 
     #region functions
     @_("function functions")
@@ -156,12 +167,12 @@ class BasedParser(Parser):
     @_("expression_statement")
     def statement(self, p):
         return f"{p.expression_statement}"
-    @_("declaration")
+    @_("declaration END")
     def statement(self, p):
-        return f"{p.declaration}"
-    @_("declaration_init")
+        return f"{p.declaration}{p.END}"
+    @_("declaration_init END")
     def statement(self, p):
-        return f"{p.declaration_init}"
+        return f"{p.declaration_init}{p.END}"
     @_("assignment")
     def statement(self, p):
         return f"{p.assignment}"
@@ -181,34 +192,62 @@ class BasedParser(Parser):
     #endregion
 
 
-    @_("type ID END")
+    # @_("type ID END")
+    # def declaration(self, p):
+    #     var_name = p.ID
+    #     if(var_name in self.scopesList[-1]):
+    #         print(f"ERROR: redefinition of {var_name}")
+    #         exit(1)
+    #     self.scopesList[-1].append(var_name)
+    #     type_name, mapping, min, max, default = p.type
+    #     # bindings.bind(p.ID, type_name, default)
+    #     return f"{mapping} {var_name}{p.END}"
+
+    # @_("type ID ASSIGN expression END")
+    # def declaration_init(self, p):
+    #     var_name = p.ID
+    #     if(var_name in self.scopesList[-1]):
+    #         print(f"ERROR: redefinition of {var_name}")
+    #         exit(1)
+    #     self.scopesList[-1].append(var_name)
+    #     type_name, mapping, min, max, default = p.type
+    #     value = p.expression
+    #     # if value < min or value > max:
+    #     #     print(f"ERROR: overflow detected in {type_name}{var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
+    #     #     exit(1)
+    #     # bindings.bind(var_name, type_name, value)
+    #     if type_name == "str":
+    #         return f"{mapping} {p.ID}[]{p.ASSIGN}{value}{p.END}"
+    #     else:        
+    #         return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
+
+    @_("var_name COLON type")
     def declaration(self, p):
-        var_name = p.ID
-        if(var_name in self.scopesList[-1]):
-            print(f"ERROR: redefinition of {var_name}")
+        if(p.var_name in self.scopesList[-1]):
+            print(f"ERROR: redefinition of {p.var_name}")
             exit(1)
-        self.scopesList[-1].append(var_name)
+        self.scopesList[-1].append(p.var_name)
         type_name, mapping, min, max, default = p.type
         # bindings.bind(p.ID, type_name, default)
-        return f"{mapping} {var_name}{p.END}"
+        return f"{mapping} {p.var_name}"
 
-    @_("type ID ASSIGN expression END")
+    @_("var_name COLON type ASSIGN expression")
     def declaration_init(self, p):
-        var_name = p.ID
-        if(var_name in self.scopesList[-1]):
-            print(f"ERROR: redefinition of {var_name}")
+        if(p.var_name in self.scopesList[-1]):
+            print(f"ERROR: redefinition of {p.var_name}")
             exit(1)
-        self.scopesList[-1].append(var_name)
+        self.scopesList[-1].append(p.var_name)
         type_name, mapping, min, max, default = p.type
         value = p.expression
         # if value < min or value > max:
-        #     print(f"ERROR: overflow detected in {type_name}{var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
+        #     print(f"ERROR: overflow detected in {type_name}{p.var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
         #     exit(1)
-        # bindings.bind(var_name, type_name, value)
+        # bindings.bind(p.var_name, type_name, value)
         if type_name == "str":
-            return f"{mapping} {p.ID}[]{p.ASSIGN}{value}{p.END}"
+            return f"{mapping} {p.var_name}[]{p.ASSIGN}{value}"
         else:        
-            return f"{mapping} {p.ID}{p.ASSIGN}{value}{p.END}"
+            return f"{mapping} {p.var_name}{p.ASSIGN}{value}"
+
 
     @_("ID ASSIGN expression END")
     def assignment(self, p):
@@ -219,18 +258,18 @@ class BasedParser(Parser):
         value = p.expression          
         return f"{var_name}{p.ASSIGN}{value}{p.END}"
     
-    @_("type ID LSBRACKET term RSBRACKET END")
-    def declaration(self, p):
-        var_name = p.ID
-        type_name, mapping, min, max, default = p.type
-        arr = (var_name,mapping)
-        if(arr in self.arrayScopeList[-1] or arr[0] in self.scopesList[-1]):
-            print(f"ERROR: redefinition of {arr[0]}")
-            exit(1)
-        self.arrayScopeList[-1].append(arr)
-        self.scopesList[-1].append(arr[0])
-        value = p.term
-        return f"Array {arr[0]}{p.END} {arr[0]}.size = {value}{p.END} {arr[0]}.value = malloc(sizeof({arr[1]})*{value}){p.END}"
+    # @_("type var_name LSBRACKET term RSBRACKET END")
+    # def declaration(self, p):
+    #     var_name = p.var_name
+    #     type_name, mapping, min, max, default = p.type
+    #     arr = (var_name,mapping)
+    #     if(arr in self.arrayScopeList[-1] or arr[0] in self.scopesList[-1]):
+    #         print(f"ERROR: redefinition of {arr[0]}")
+    #         exit(1)
+    #     self.arrayScopeList[-1].append(arr)
+    #     self.scopesList[-1].append(arr[0])
+    #     value = p.term
+    #     return f"Array {arr[0]}{p.END} {arr[0]}.size = {value}{p.END} {arr[0]}.value = malloc(sizeof({arr[1]})*{value}){p.END}"
 
     @_("ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression END")
     def assignment(self, p):
