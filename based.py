@@ -265,12 +265,12 @@ class BasedParser(Parser):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
-        _, mapping, _, _, _ = p.type
+        type_name, mapping, _, _, _ = p.type
         self.scalar_bindings.bind(p.ID, mapping)
-        # if type_name == "str":
-        #     return f"{mapping} {p.ID}[]={value}"
-        # else:
-        return f"{mapping} {p.ID}={p.expression}"
+        if type_name == "str":
+            return f"{mapping} {p.ID}[]={p.expression}"
+        else:
+            return f"{mapping} {p.ID}={p.expression}"
     @_("DECLARE ID LSBRACKET term RSBRACKET COLON ASSIGN expression") 
     def array_declaration_init(self, p):
         raise NotImplementedError()
