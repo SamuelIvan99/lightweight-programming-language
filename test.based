@@ -1,37 +1,16 @@
-my_fn(x i32, y i64):abyss{
-    z:i32 = 10;
-
-
-
-    if(z == 10){
-        result:bool = true;
-    }
-    else if(true == false){}
-    else {}
-
-    w:i32;
+main(argc:i16, argv['c']:char):abyss {
+    let x:i16;
     {
-        w:i32;
-        x:i32 = 2;
-        a:i32 = 3;
-        w = 3 + 5;
-        k[3]:i32;
-        b:i32 = 2<5;
-        # Uncommented, this will raise a scope(?) error: "variable m not found" 
-        # m[67]:i32;
-        # m[2+5] = 5;
-        # w = m[b];
+        let x:i16;
+        x = 2 + 1 / (1 * 100);
+        let y[100]:i32;
+        let abracadabra[1]:bool;
+        abracadabra[10 + 10] = 1;
+        y[1] = 2;
+        y[2] = x;
+        y[1] = y[2];
     }
-    
-}
-
-
-main():abyss{
-    my_fn(2+2, 1231234);
-    x:i16 = 10;
-
-    while (x < 11){
-        x = 11;
-    }
+    let abracadabra[50]:char;
+    let x:bool;
 }
 

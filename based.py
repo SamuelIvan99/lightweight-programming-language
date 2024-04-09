@@ -6,31 +6,39 @@ class Bindings:
     def __init__(self):
         self._stack = []
 
-    def bind(self, name, type, value):
-        self._stack.insert(0, (name, type, value))
+    # def bind(self, name, type, value):
+    def bind(self, name, mapping):
+        # self._stack.insert(0, (name, type, value))
+        self._stack.insert(0, (name, mapping))
 
     def lookup(self, name_to_find):
-        for name, type in self._stack:
+        for result in self._stack:
+            if result == "#":
+                break
+            name, mapping = result
             if name == name_to_find:
-                return name
+                return name, mapping
         return None
 
     def enter(self):
         self._stack.insert(0, "#")
 
     def exit(self):
-        variable = self._stack.pop(0)
-        while len(self.stack) > 0 and variable != "#":
+        popped = []
+        while len(self._stack) > 0 and self._stack[0] != "#":
             variable = self._stack.pop(0)
+            popped.append(variable)
+        return popped
 
-bindings = Bindings()
+scalar_bindings = Bindings()
+array_bindings = Bindings()
 
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE, STRING_TYPE, ABYSS_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
                ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, INSERTION, EXTRACTION}
+               COLON, COMMA, DECLARE, INSERTION, EXTRACTION }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -46,9 +54,10 @@ class BasedLexer(Lexer):
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
 
-    WHILE = r"while"
-    IF    = r"if"
-    ELSE  = r"else"
+    WHILE    = r"while"
+    IF       = r"if"
+    ELSE     = r"else"
+    DECLARE  = r"let"
 
     AND            = r"\&\&"
     OR             = r"\|\|"
@@ -98,16 +107,6 @@ class BasedParser(Parser):
     def program(self, p):
         return f"{p.functions}"
 
-    @_("ID")
-    def var_name(self, p):
-        return f"{p.ID}"
-    @_("array_name")
-    def var_name(self, p):
-        return f"{p.array_name}"
-    @_("ID LSBRACKET arithmetic_layer RSBRACKET")
-    def array_name(self,p):
-        return f"{p.ID}{p.LSBRACKET}{p.arithmetic_layer}{p.RSBRACKET}"
-
     #region functions
     @_("function functions")
     def functions(self, p):
@@ -115,27 +114,38 @@ class BasedParser(Parser):
     @_("")
     def functions(self, p):
         return ""
-    @_("ID LPAREN formal_params RPAREN COLON return_type scope")
-    def function(self, p):
-        return f"{p.return_type} {p.ID}{p.LPAREN}{p.formal_params}{p.RPAREN}{p.scope}" 
-    @_("var_name type multi_formal_params")
-    def formal_params(self, p):
-        type_name,mapping,min,max,default = p.type
-        return f"{mapping} {p.var_name}{p.multi_formal_params}"
-    @_("")
-    def formal_params(self, p):
-        return ""
-    @_("COMMA var_name type multi_formal_params")
-    def multi_formal_params(self, p):
-        type_name,mapping,min,max,default = p.type
-        return f"{p.COMMA}{mapping} {p.var_name}{p.multi_formal_params}"
-    @_("")
-    def multi_formal_params(self, p):
-        return ""
+    #endregion
 
+    #region function
+    @_("ID LPAREN formal_params RPAREN COLON type scope")
+    def function(self, p):
+        _, mapping, _, _, _ = p.type
+        return f"{mapping} {p.ID}({p.formal_params}){p.scope}" 
+    @_("ID COLON type multi_formal_params")
+    def formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        return f"{mapping} {p.ID}{p.multi_formal_params}"
+    @_("ID LSBRACKET term RSBRACKET COLON type multi_formal_params")
+    def formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        return f"{mapping} {p.ID}[{p.term}]{p.multi_formal_params}"
+    @_("")
+    def formal_params(self, p):
+        return ""
+    @_("COMMA ID COLON type multi_formal_params")
+    def multi_formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        return f", {mapping} {p.ID}{p.multi_formal_params}"
+    @_("COMMA ID LSBRACKET term RSBRACKET COLON type multi_formal_params")
+    def multi_formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        return f", {mapping} {p.ID}[{p.term}]{p.multi_formal_params}"
+    @_("")
+    def multi_formal_params(self, p):
+        return ""
     @_("ID LPAREN actual_params RPAREN")
     def function_call(self, p):
-        return f"{p.ID}{p.LPAREN}{p.actual_params}{p.RPAREN}"
+        return f"{p.ID}({p.actual_params})"
     @_("expression multi_actual_params")
     def actual_params(self, p):
         return f"{p.expression}{p.multi_actual_params}"
@@ -144,10 +154,25 @@ class BasedParser(Parser):
         return ""
     @_("COMMA expression multi_actual_params")
     def multi_actual_params(self, p):
-        return f"{p.COMMA}{p.expression}{p.multi_actual_params}"
+        return f", {p.expression}{p.multi_actual_params}"
     @_("")
     def multi_actual_params(self, p):
         return ""
+    #endregion
+
+    #region scope
+    @_("LBRACE new_scope statements pop_scope RBRACE")
+    def scope(self, p):
+        return f"{{{p.statements}{p.pop_scope}}}"
+    @_("")
+    def new_scope(self, p):
+        scalar_bindings.enter()
+        array_bindings.enter()
+    @_("")
+    def pop_scope(self, p):
+        scalar_bindings.exit()
+        popped = array_bindings.exit()
+        return "".join([f"free({name});" for name, _ in popped])
     #endregion
 
     #region statements
@@ -156,22 +181,34 @@ class BasedParser(Parser):
         return f"{p.statement}{p.statements}"
     @_("")
     def statements(self, p):
-        return f""
+        return ""
+    #endregion
+
+    #region statement
     @_("expression END")
     def statement(self, p):
-        return f"{p.expression}{p.END}"
-    @_("declaration END")
+        return f"{p.expression};"
+    @_("scalar_declaration END")
     def statement(self, p):
-        return f"{p.declaration}{p.END}"
-    @_("declaration_init END")
+        return f"{p.scalar_declaration};"
+    @_("array_declaration END")
     def statement(self, p):
-        return f"{p.declaration_init}{p.END}"
-    @_("assignment END")
+        return f"{p.array_declaration};"
+    @_("scalar_declaration_init END")
     def statement(self, p):
-        return f"{p.assignment}{p.END}"
+        return f"{p.scalar_declaration_init};"
+    @_("array_declaration_init END")
+    def statement(self, p):
+        return f"{p.array_declaration_init};"
+    @_("scalar_assignment END")
+    def statement(self, p):
+        return f"{p.scalar_assignment};"
+    @_("array_assignment END")
+    def statement(self, p):
+        return f"{p.array_assignment};"
     @_("scope")
-    def statement(self,p):
-        return p.scope
+    def statement(self, p):
+        return f"{p.scope}"
     @_("while_statement")
     def statement(self, p):
         return f"{p.while_statement}"
@@ -180,109 +217,92 @@ class BasedParser(Parser):
         return f"{p.if_statement}"
     @_("END")
     def statement(self, p):
-        return f"{p.END}"
-    
+        return ";"
+    #endregion
+
+    #whilestatement    
     @_("WHILE LPAREN expression RPAREN scope")
-    def while_statement(self,p):
-        return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}"
+    def while_statement(self, p):
+        return f"while({p.expression}){p.scope}"
+    #endregion
+
+    #region ifstatement
     @_("IF LPAREN expression RPAREN scope else_statement")
-    def if_statement(self,p):
-        return f"{p.IF}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}{p.else_statement}"
+    def if_statement(self, p):
+        return f"if({p.expression}){p.scope}{p.else_statement}"
     @_("ELSE scope")
-    def else_statement(self,p):
-        return f"{p.ELSE}{p.scope}" 
+    def else_statement(self, p):
+        return f"else{p.scope}" 
     @_("ELSE if_statement")
-    def else_statement(self,p):
-        return f"{p.ELSE} {p.if_statement}"
+    def else_statement(self, p):
+        return f"else {p.if_statement}"
     @_("")
-    def else_statement(self,p):
-        return f""
+    def else_statement(self, p):
+        return ""
     #endregion
 
     #region declaration
-    @_("var_name COLON type")
-    def declaration(self, p):
-        if(p.var_name in self.scopesList[-1]):
-            print(f"ERROR: redefinition of {p.var_name}")
+    @_("DECLARE ID COLON type")
+    def scalar_declaration(self, p):
+        if scalar_bindings.lookup(p.ID):
+            print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
-        self.scopesList[-1].append(p.var_name)
-        type_name, mapping, min, max, default = p.type
-        # bindings.bind(p.ID, type_name, default)
-        return f"{mapping} {p.var_name}"
 
-    @_("var_name COLON type ASSIGN expression")
-    def declaration_init(self, p):
-        if(p.var_name in self.scopesList[-1]):
-            print(f"ERROR: redefinition of {p.var_name}")
+        _, mapping, _, _, _ = p.type
+        scalar_bindings.bind(p.ID, mapping)
+        return f"{mapping} {p.ID}"
+
+    @_("DECLARE ID LSBRACKET term RSBRACKET COLON type")
+    def array_declaration(self, p):
+        if array_bindings.lookup(p.ID):
+            print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
-        self.scopesList[-1].append(p.var_name)
-        type_name, mapping, min, max, default = p.type
-        value = p.expression
-        # if value < min or value > max:
-        #     print(f"ERROR: overflow detected in {type_name}{p.var_name}{p.ASSIGN}{value}, assigned value must be in range [{min},{max}]")
-        #     exit(1)
-        # bindings.bind(p.var_name, type_name, value)
-        if type_name == "str":
-            return f"{mapping} {p.var_name}[]{p.ASSIGN}{value}"
-        else:        
-            return f"{mapping} {p.var_name}{p.ASSIGN}{value}"
-        
-    # Troublesome declaration
-    # @_("type ID LSBRACKET term RSBRACKET END")
-    # def declaration(self, p):
-    #     type_name, mapping, min, max, default = p.type
-    #     arr = (p.ID,mapping)
-    #     if(arr in self.arrayScopeList[-1] or arr[0] in self.scopesList[-1]):
-    #         print(f"ERROR: redefinition of {arr[0]}")
-    #         exit(1)
-    #     self.arrayScopeList[-1].append(arr)
-    #     self.scopesList[-1].append(arr[0])
-    #     value = p.term
-    #     return f"Array {arr[0]}{p.END} {arr[0]}.size = {value}{p.END} {arr[0]}.value = malloc(sizeof({arr[1]})*{value}){p.END}"
+
+        _, mapping, _, _, _ = p.type
+        array_bindings.bind(p.ID, mapping)
+
+        return f"Array {p.ID};{p.ID}.size={p.term};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
+    #endregion
+
+    #region declaration_init
+    @_("DECLARE ID COLON type ASSIGN expression")
+    def scalar_declaration_init(self, p):
+        if scalar_bindings.lookup(p.ID):
+            print(f"ERROR: variable '{p.ID}' already defined in scope")
+            exit(1)
+
+        _, mapping, _, _, _ = p.type
+        scalar_bindings.bind(p.ID, mapping)
+        # if type_name == "str":
+        #     return f"{mapping} {p.ID}[]={value}"
+        # else:
+        return f"{mapping} {p.ID}={p.expression}"
+    @_("DECLARE ID LSBRACKET term RSBRACKET COLON ASSIGN expression") 
+    def array_declaration_init(self, p):
+        raise NotImplementedError()
     #endregion
 
     #region assignment
     @_("ID ASSIGN expression")
-    def assignment(self, p):
-        var_name = p.ID
-        if(var_name not in self.scopesList[-1]):
-            print(f"ERROR: variable: {var_name} not found")
+    def scalar_assignment(self, p):
+        result = scalar_bindings.lookup(p.ID)
+        if not result:
+            print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
-        value = p.expression          
-        return f"{var_name}{p.ASSIGN}{value}"
-    
+
+        return f"{p.ID}={p.expression}"
     @_("ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression")
-    def assignment(self, p):
-        var_name = p.ID
-        flag = 1
-        arr = ("","")
-        for i in self.arrayScopeList[-1]:
-            if(i[0] == var_name):
-                flag = 0
-                arr = i
-                break
-        if(flag):
-            print(f"ERROR: variable: {var_name} not found")
+    def array_assignment(self, p):
+        result = array_bindings.lookup(p.ID)
+        if not result:
+            print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
-        value = p.expression
-        return f"(({arr[1]}*)getElement({arr[0]},{p.arithmetic_layer}))[{p.arithmetic_layer}]{p.ASSIGN}{value}"
+
+        _, mapping = result
+        return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))={p.expression}"
     #endregion
 
-    #region expressions
-    @_("ID LSBRACKET arithmetic_layer RSBRACKET")
-    def expression(self, p):
-        var_name = p.ID
-        flag = 1
-        arr = ("","")
-        for i in self.arrayScopeList[-1]:
-            if(i[0] == var_name):
-                flag = 0
-                arr = i
-                break
-        if(flag):
-            print(f"ERROR: variable: {var_name} not found")
-            exit(1)
-        return f"(({arr[1]}*)getElement({arr[0]},{p.arithmetic_layer}))[{p.arithmetic_layer}]"
+    #region expression
     @_("expression AND comparison_layer")
     def expression(self, p):
         return f"{p.expression}{p.AND}{p.comparison_layer}" 
@@ -300,37 +320,40 @@ class BasedParser(Parser):
         return f"{p.arithmetic_layer}"
     @_("arithmetic_layer PLUS term")
     def arithmetic_layer(self, p):
-        return f"{p.arithmetic_layer}{p.PLUS}{p.term}"
+        return f"{p.arithmetic_layer}+{p.term}"
     @_("arithmetic_layer MINUS term")
     def arithmetic_layer(self, p):
-        return f"{p.arithmetic_layer}{p.MINUS}{p.term}"
+        return f"{p.arithmetic_layer}-{p.term}"
     @_("term")
     def arithmetic_layer(self, p):
         return f"{p.term}"
     @_("term MULTIPLICATION factor")
-    def term(self,p):
-        return f"{p.term}{p.MULTIPLICATION}{p.factor}"    
+    def term(self, p):
+        return f"{p.term}*{p.factor}"    
     @_("term DIVISION factor")
-    def term(self,p):
-        return f"{p.term}{p.DIVISION}{p.factor}" 
+    def term(self, p):
+        return f"{p.term}/{p.factor}" 
     @_("factor")
-    def term(self,p):
+    def term(self, p):
         return f"{p.factor}"
     @_("function_call")
     def factor(self, p):
         return f"{p.function_call}"
     @_("LPAREN expression RPAREN")
-    def factor(self,p):
-        return f"{p.LPAREN}{p.expression}{p.RPAREN}"
+    def factor(self, p):
+        return f"({p.expression})"
     @_("value")
-    def factor(self,p):
+    def factor( self,p):
         return f"{p.value}"
+    @_("ID LSBRACKET arithmetic_layer RSBRACKET")
+    def factor(self, p):
+        return f"{p.ID}[{p.arithmetic_layer}]"
     @_("ID")
-    def factor(self,p):
+    def factor(self, p):
         return f"{p.ID}"
     #endregion
 
-    #region type and return type
+    #region type
     @_("SIGNED_TYPE")
     def type(self, p):
         types_mapping = {
@@ -403,16 +426,15 @@ class BasedParser(Parser):
             "Z",
             "0"
         )
-    
-    @_("type")
-    def return_type(self, p):
-        type_name, mapping, min, max, default = p.type
-        return f"{mapping}"
-
     @_("ABYSS_TYPE")
-    def return_type(self, p):
-        return "void"
-
+    def type(self, p):
+        return (
+            p.ABYSS_TYPE,
+            "void",
+            "0",
+            "0",
+            "0"
+        )
     #endregion
 
     #region value
@@ -437,33 +459,6 @@ class BasedParser(Parser):
         return p.STRING_VALUE
     #endregion
 
-    #region scope
-    @_("LBRACE new_scope statements pop_scope RBRACE")
-    def scope(self,p):
-        return f"{p.LBRACE}{p.statements}{p.pop_scope}{p.RBRACE}"
-
-    @_('')
-    def new_scope(self,p):
-        newScope = []
-        newArrayScope = []
-        self.scopesList.append(newScope)
-        self.arrayScopeList.append(newArrayScope)
-
-    @_('')
-    def pop_scope(self,p):
-        s = f""
-        for i in self.arrayScopeList[-1]:
-            s += f"free({i[0]}.value);\n"
-        self.scopesList.pop()
-        self.arrayScopeList.pop()
-        return s
-    #endregion
-    
-    
-    # @_("STRING_TYPE ID ASSIGN STRING_VALUE END")
-    # def declaration_init(self, p):
-    #     return f"char {p.ID}[] {p.ASSIGN} {p.STRING_VALUE}{p.END}"
-
 def main():
     # For transpiled C code
     if not os.path.exists("dist"):
@@ -484,9 +479,8 @@ def main():
         result = parser.parse(tokens)
 
     with open("dist/out.c", "a") as c_file:
-        # c_file.write(f"int main(){{{result}return 0;}}")
         c_file.write(f"#include \"array.h\"\n\n{result}")
-    # subprocess.run(["clang-format", "-i", "dist/out.c"])
+    subprocess.run(["clang-format", "-i", "dist/out.c"])
     # os.system("gcc dist/out.c -o bin/based")
 if __name__ == '__main__':
     main()
