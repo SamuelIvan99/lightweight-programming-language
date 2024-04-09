@@ -1,32 +1,34 @@
 my_fn(i32 x, i64 y):bool{
-    i32 z = 10;
+    z:i32 = 10;
 
     if(z == 10){
-        bool result = true;
+        result:bool = true;
     }
     else if(true == false){
 
     }
     else {}
 
-    i32 w;
+    w:i32;
     {
-        i32 w;
-        i32 x = 2;
-        i32 a = 3;
+        w:i32;
+        x:i32 = 2;
+        a:i32 = 3;
         w = 3 + 5;
-        i32 k[3];
-        i32 m[67];
-        m[2+5] = 5;
-        i32 b = 2<5;
-        w = m[b];
+        k[3]:i32;
+        b:i32 = 2<5;
+        # Uncommented, this will raise a scope(?) error: "variable m not found" 
+        # m[67]:i32;
+        # m[2+5] = 5;
+        # w = m[b];
     }
     
     
 }
 
+
 main():i16{
     my_fn(2+2, 1231234);
-    i32 x = 10;
+    x:i16 = 10;
 }
 
