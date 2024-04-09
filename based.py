@@ -30,9 +30,6 @@ class Bindings:
             popped.append(variable)
         return popped
 
-scalar_bindings = Bindings()
-array_bindings = Bindings()
-
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE, STRING_TYPE, ABYSS_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
@@ -97,11 +94,8 @@ class BasedParser(Parser):
     debugfile = "dist/debug"
 
     def __init__(self):
-        globalScope = []
-        self.scopesList = [globalScope]
-
-        globalArrayScope = []
-        self.arrayScopeList = [globalArrayScope]
+        self.scalar_bindings = Bindings()
+        self.array_bindings = Bindings()
 
     @_("functions")
     def program(self, p):
@@ -166,12 +160,12 @@ class BasedParser(Parser):
         return f"{{{p.statements}{p.pop_scope}}}"
     @_("")
     def new_scope(self, p):
-        scalar_bindings.enter()
-        array_bindings.enter()
+        self.scalar_bindings.enter()
+        self.array_bindings.enter()
     @_("")
     def pop_scope(self, p):
-        scalar_bindings.exit()
-        popped = array_bindings.exit()
+        self.scalar_bindings.exit()
+        popped = self.array_bindings.exit()
         return "".join([f"free({name});" for name, _ in popped])
     #endregion
 
@@ -244,22 +238,22 @@ class BasedParser(Parser):
     #region declaration
     @_("DECLARE ID COLON type")
     def scalar_declaration(self, p):
-        if scalar_bindings.lookup(p.ID):
+        if self.scalar_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
         _, mapping, _, _, _ = p.type
-        scalar_bindings.bind(p.ID, mapping)
+        self.scalar_bindings.bind(p.ID, mapping)
         return f"{mapping} {p.ID}"
 
     @_("DECLARE ID LSBRACKET term RSBRACKET COLON type")
     def array_declaration(self, p):
-        if array_bindings.lookup(p.ID):
+        if self.array_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
         _, mapping, _, _, _ = p.type
-        array_bindings.bind(p.ID, mapping)
+        self.array_bindings.bind(p.ID, mapping)
 
         return f"Array {p.ID};{p.ID}.size={p.term};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
     #endregion
@@ -267,12 +261,12 @@ class BasedParser(Parser):
     #region declaration_init
     @_("DECLARE ID COLON type ASSIGN expression")
     def scalar_declaration_init(self, p):
-        if scalar_bindings.lookup(p.ID):
+        if self.scalar_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
         _, mapping, _, _, _ = p.type
-        scalar_bindings.bind(p.ID, mapping)
+        self.scalar_bindings.bind(p.ID, mapping)
         # if type_name == "str":
         #     return f"{mapping} {p.ID}[]={value}"
         # else:
@@ -285,7 +279,7 @@ class BasedParser(Parser):
     #region assignment
     @_("ID ASSIGN expression")
     def scalar_assignment(self, p):
-        result = scalar_bindings.lookup(p.ID)
+        result = self.scalar_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
@@ -293,7 +287,7 @@ class BasedParser(Parser):
         return f"{p.ID}={p.expression}"
     @_("ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression")
     def array_assignment(self, p):
-        result = array_bindings.lookup(p.ID)
+        result = self.array_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
