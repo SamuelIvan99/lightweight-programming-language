@@ -1,12 +1,12 @@
-my_fn(i32 x, i64 y):bool{
+my_fn(x i32, y i64):abyss{
     z:i32 = 10;
+
+
 
     if(z == 10){
         result:bool = true;
     }
-    else if(true == false){
-
-    }
+    else if(true == false){}
     else {}
 
     w:i32;
@@ -23,12 +23,15 @@ my_fn(i32 x, i64 y):bool{
         # w = m[b];
     }
     
-    
 }
 
 
-main():i16{
+main():abyss{
     my_fn(2+2, 1231234);
     x:i16 = 10;
+
+    while (x < 11){
+        x = 11;
+    }
 }
 
