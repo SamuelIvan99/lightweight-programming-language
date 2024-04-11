@@ -2,16 +2,16 @@ Grammar:
 
 Rule 0     S' -> program
 Rule 1     program -> functions
-Rule 2     functions -> <empty>
-Rule 3     functions -> function functions
-Rule 4     function -> ID LPAREN params RPAREN COLON return_type scope
-Rule 5     return_type -> ABYSS_TYPE
-Rule 6     return_type -> type
-Rule 7     params -> <empty>
-Rule 8     params -> param_declaration multi_params
-Rule 9     multi_params -> <empty>
-Rule 10    multi_params -> COMMA param_declaration multi_params
-Rule 11    param_declaration -> type ID
+Rule 2     var_name -> array_name
+Rule 3     var_name -> ID
+Rule 4     array_name -> ID LSBRACKET arithmetic_layer RSBRACKET
+Rule 5     functions -> <empty>
+Rule 6     functions -> function functions
+Rule 7     function -> ID LPAREN formal_params RPAREN COLON return_type scope
+Rule 8     formal_params -> <empty>
+Rule 9     formal_params -> var_name type multi_formal_params
+Rule 10    multi_formal_params -> <empty>
+Rule 11    multi_formal_params -> COMMA var_name type multi_formal_params
 Rule 12    function_call -> ID LPAREN actual_params RPAREN
 Rule 13    actual_params -> <empty>
 Rule 14    actual_params -> expression multi_actual_params
@@ -23,23 +23,23 @@ Rule 19    statement -> END
 Rule 20    statement -> if_statement
 Rule 21    statement -> while_statement
 Rule 22    statement -> scope
-Rule 23    statement -> array_get
-Rule 24    statement -> array_assign
-Rule 25    statement -> array_create
-Rule 26    statement -> assignment
-Rule 27    statement -> declaration_init
-Rule 28    statement -> declaration
-Rule 29    statement -> expression_statement
-Rule 30    declaration -> type ID END
-Rule 31    declaration_init -> type ID ASSIGN expression END
-Rule 32    assignment -> ID ASSIGN expression END
-Rule 33    array_create -> type ID LSBRACKET term RSBRACKET END
-Rule 34    array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END
-Rule 35    array_get -> ID LSBRACKET term RSBRACKET
-Rule 36    expression_statement -> expression END
-Rule 37    expression -> comparison_layer
-Rule 38    expression -> expression OR comparison_layer
-Rule 39    expression -> expression AND comparison_layer
+Rule 23    statement -> assignment END
+Rule 24    statement -> declaration_init END
+Rule 25    statement -> declaration END
+Rule 26    statement -> expression END
+Rule 27    while_statement -> WHILE LPAREN expression RPAREN scope
+Rule 28    if_statement -> IF LPAREN expression RPAREN scope else_statement
+Rule 29    else_statement -> <empty>
+Rule 30    else_statement -> ELSE if_statement
+Rule 31    else_statement -> ELSE scope
+Rule 32    declaration -> var_name COLON type
+Rule 33    declaration_init -> var_name COLON type ASSIGN expression
+Rule 34    assignment -> ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
+Rule 35    assignment -> ID ASSIGN expression
+Rule 36    expression -> comparison_layer
+Rule 37    expression -> expression OR comparison_layer
+Rule 38    expression -> expression AND comparison_layer
+Rule 39    expression -> ID LSBRACKET arithmetic_layer RSBRACKET
 Rule 40    comparison_layer -> arithmetic_layer
 Rule 41    comparison_layer -> comparison_layer COMPARATOR arithmetic_layer
 Rule 42    arithmetic_layer -> term
@@ -53,91 +53,96 @@ Rule 49    factor -> value
 Rule 50    factor -> LPAREN expression RPAREN
 Rule 51    factor -> function_call
 Rule 52    type -> BOOL_TYPE
-Rule 53    type -> CHAR_TYPE
-Rule 54    type -> FLOAT_TYPE
-Rule 55    type -> UNSIGNED_TYPE
-Rule 56    type -> SIGNED_TYPE
-Rule 57    value -> CHAR_VALUE
-Rule 58    value -> BOOL_VALUE
-Rule 59    value -> FLOAT_VALUE
-Rule 60    value -> INTEGRAL_VALUE
-Rule 61    scope -> LBRACE new_scope statements pop_scope RBRACE
-Rule 62    new_scope -> <empty>
-Rule 63    pop_scope -> <empty>
-Rule 64    while_statement -> WHILE LPAREN expression RPAREN scope
-Rule 65    if_statement -> IF LPAREN expression RPAREN scope else_statement
-Rule 66    else_statement -> <empty>
-Rule 67    else_statement -> ELSE if_statement
-Rule 68    else_statement -> ELSE scope
+Rule 53    type -> STRING_TYPE
+Rule 54    type -> CHAR_TYPE
+Rule 55    type -> FLOAT_TYPE
+Rule 56    type -> UNSIGNED_TYPE
+Rule 57    type -> SIGNED_TYPE
+Rule 58    return_type -> ABYSS_TYPE
+Rule 59    return_type -> type
+Rule 60    value -> STRING_VALUE
+Rule 61    value -> CHAR_VALUE
+Rule 62    value -> BOOL_VALUE
+Rule 63    value -> FLOAT_VALUE
+Rule 64    value -> INTEGRAL_VALUE
+Rule 65    scope -> LBRACE new_scope statements pop_scope RBRACE
+Rule 66    new_scope -> <empty>
+Rule 67    pop_scope -> <empty>
+
+Unused terminals:
+
+    EXTRACTION
+    INSERTION
 
 Terminals, with rules where they appear:
 
-ABYSS_TYPE           : 5
-AND                  : 39
-ASSIGN               : 31 32 34
+ABYSS_TYPE           : 58
+AND                  : 38
+ASSIGN               : 33 34 35
 BOOL_TYPE            : 52
-BOOL_VALUE           : 58
-CHAR_TYPE            : 53
-CHAR_VALUE           : 57
-COLON                : 4
-COMMA                : 10 16
+BOOL_VALUE           : 62
+CHAR_TYPE            : 54
+CHAR_VALUE           : 61
+COLON                : 7 32 33
+COMMA                : 11 16
 COMPARATOR           : 41
 DIVISION             : 46
-ELSE                 : 67 68
-END                  : 19 30 31 32 33 34 36
-FLOAT_TYPE           : 54
-FLOAT_VALUE          : 59
-ID                   : 4 11 12 30 31 32 33 34 35 48
-IF                   : 65
-INTEGRAL_VALUE       : 60
-LBRACE               : 61
-LPAREN               : 4 12 50 64 65
-LSBRACKET            : 33 34 35
+ELSE                 : 30 31
+END                  : 19 23 24 25 26
+EXTRACTION           : 
+FLOAT_TYPE           : 55
+FLOAT_VALUE          : 63
+ID                   : 3 4 7 12 34 35 39 48
+IF                   : 28
+INSERTION            : 
+INTEGRAL_VALUE       : 64
+LBRACE               : 65
+LPAREN               : 7 12 27 28 50
+LSBRACKET            : 4 34 39
 MINUS                : 43
 MULTIPLICATION       : 47
-OR                   : 38
+OR                   : 37
 PLUS                 : 44
-RBRACE               : 61
-RPAREN               : 4 12 50 64 65
-RSBRACKET            : 33 34 35
-SIGNED_TYPE          : 56
-UNSIGNED_TYPE        : 55
-WHILE                : 64
+RBRACE               : 65
+RPAREN               : 7 12 27 28 50
+RSBRACKET            : 4 34 39
+SIGNED_TYPE          : 57
+STRING_TYPE          : 53
+STRING_VALUE         : 60
+UNSIGNED_TYPE        : 56
+WHILE                : 27
 error                : 
 
 Nonterminals, with rules where they appear:
 
 actual_params        : 12
-arithmetic_layer     : 40 41 43 44
-array_assign         : 24
-array_create         : 25
-array_get            : 23
-assignment           : 26
-comparison_layer     : 37 38 39 41
-declaration          : 28
-declaration_init     : 27
-else_statement       : 65
-expression           : 14 16 31 32 34 36 38 39 50 64 65
-expression_statement : 29
+arithmetic_layer     : 4 34 39 40 41 43 44
+array_name           : 2
+assignment           : 23
+comparison_layer     : 36 37 38 41
+declaration          : 25
+declaration_init     : 24
+else_statement       : 28
+expression           : 14 16 26 27 28 33 34 35 37 38 50
 factor               : 45 46 47
-function             : 3
+formal_params        : 7
+function             : 6
 function_call        : 51
-functions            : 1 3
-if_statement         : 20 67
+functions            : 1 6
+if_statement         : 20 30
 multi_actual_params  : 14 16
-multi_params         : 8 10
-new_scope            : 61
-param_declaration    : 8 10
-params               : 4
-pop_scope            : 61
+multi_formal_params  : 9 11
+new_scope            : 65
+pop_scope            : 65
 program              : 0
-return_type          : 4
-scope                : 4 22 64 65 68
+return_type          : 7
+scope                : 7 22 27 28 31
 statement            : 18
-statements           : 18 61
-term                 : 33 34 35 42 43 44 46 47
-type                 : 6 11 30 31 33
+statements           : 18 65
+term                 : 42 43 44 46 47
+type                 : 9 11 32 33 59
 value                : 49
+var_name             : 9 11 32 33
 while_statement      : 21
 
 
@@ -145,10 +150,10 @@ state 0
 
     (0) S' -> . program
     (1) program -> . functions
-    (2) functions -> .
-    (3) functions -> . function functions
-    (4) function -> . ID LPAREN params RPAREN COLON return_type scope
-    $end            reduce using rule 2 (functions -> .)
+    (5) functions -> .
+    (6) functions -> . function functions
+    (7) function -> . ID LPAREN formal_params RPAREN COLON return_type scope
+    $end            reduce using rule 5 (functions -> .)
     ID              shift and go to state 4
 
     program                        shift and go to state 1
@@ -168,11 +173,11 @@ state 2
 
 state 3
 
-    (3) functions -> function . functions
-    (2) functions -> .
-    (3) functions -> . function functions
-    (4) function -> . ID LPAREN params RPAREN COLON return_type scope
-    $end            reduce using rule 2 (functions -> .)
+    (6) functions -> function . functions
+    (5) functions -> .
+    (6) functions -> . function functions
+    (7) function -> . ID LPAREN formal_params RPAREN COLON return_type scope
+    $end            reduce using rule 5 (functions -> .)
     ID              shift and go to state 4
 
     function                       shift and go to state 3
@@ -180,897 +185,274 @@ state 3
 
 state 4
 
-    (4) function -> ID . LPAREN params RPAREN COLON return_type scope
+    (7) function -> ID . LPAREN formal_params RPAREN COLON return_type scope
     LPAREN          shift and go to state 6
 
 
 state 5
 
-    (3) functions -> function functions .
-    $end            reduce using rule 3 (functions -> function functions .)
+    (6) functions -> function functions .
+    $end            reduce using rule 6 (functions -> function functions .)
 
 
 state 6
 
-    (4) function -> ID LPAREN . params RPAREN COLON return_type scope
-    (7) params -> .
-    (8) params -> . param_declaration multi_params
-    (11) param_declaration -> . type ID
-    (52) type -> . BOOL_TYPE
-    (53) type -> . CHAR_TYPE
-    (54) type -> . FLOAT_TYPE
-    (55) type -> . UNSIGNED_TYPE
-    (56) type -> . SIGNED_TYPE
-    RPAREN          reduce using rule 7 (params -> .)
-    BOOL_TYPE       shift and go to state 10
-    CHAR_TYPE       shift and go to state 11
-    FLOAT_TYPE      shift and go to state 12
-    UNSIGNED_TYPE   shift and go to state 13
-    SIGNED_TYPE     shift and go to state 14
+    (7) function -> ID LPAREN . formal_params RPAREN COLON return_type scope
+    (8) formal_params -> .
+    (9) formal_params -> . var_name type multi_formal_params
+    (2) var_name -> . array_name
+    (3) var_name -> . ID
+    (4) array_name -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    RPAREN          reduce using rule 8 (formal_params -> .)
+    ID              shift and go to state 7
 
-    params                         shift and go to state 7
-    param_declaration              shift and go to state 8
-    type                           shift and go to state 9
+    formal_params                  shift and go to state 8
+    var_name                       shift and go to state 9
+    array_name                     shift and go to state 10
 
 state 7
 
-    (4) function -> ID LPAREN params . RPAREN COLON return_type scope
-    RPAREN          shift and go to state 15
+    (3) var_name -> ID .
+    (4) array_name -> ID . LSBRACKET arithmetic_layer RSBRACKET
+    BOOL_TYPE       reduce using rule 3 (var_name -> ID .)
+    STRING_TYPE     reduce using rule 3 (var_name -> ID .)
+    CHAR_TYPE       reduce using rule 3 (var_name -> ID .)
+    FLOAT_TYPE      reduce using rule 3 (var_name -> ID .)
+    UNSIGNED_TYPE   reduce using rule 3 (var_name -> ID .)
+    SIGNED_TYPE     reduce using rule 3 (var_name -> ID .)
+    LSBRACKET       shift and go to state 11
 
 
 state 8
 
-    (8) params -> param_declaration . multi_params
-    (9) multi_params -> .
-    (10) multi_params -> . COMMA param_declaration multi_params
-    RPAREN          reduce using rule 9 (multi_params -> .)
-    COMMA           shift and go to state 17
+    (7) function -> ID LPAREN formal_params . RPAREN COLON return_type scope
+    RPAREN          shift and go to state 12
 
-    multi_params                   shift and go to state 16
 
 state 9
 
-    (11) param_declaration -> type . ID
-    ID              shift and go to state 18
+    (9) formal_params -> var_name . type multi_formal_params
+    (52) type -> . BOOL_TYPE
+    (53) type -> . STRING_TYPE
+    (54) type -> . CHAR_TYPE
+    (55) type -> . FLOAT_TYPE
+    (56) type -> . UNSIGNED_TYPE
+    (57) type -> . SIGNED_TYPE
+    BOOL_TYPE       shift and go to state 14
+    STRING_TYPE     shift and go to state 15
+    CHAR_TYPE       shift and go to state 16
+    FLOAT_TYPE      shift and go to state 17
+    UNSIGNED_TYPE   shift and go to state 18
+    SIGNED_TYPE     shift and go to state 19
 
+    type                           shift and go to state 13
 
 state 10
 
-    (52) type -> BOOL_TYPE .
-    ID              reduce using rule 52 (type -> BOOL_TYPE .)
-    LBRACE          reduce using rule 52 (type -> BOOL_TYPE .)
+    (2) var_name -> array_name .
+    BOOL_TYPE       reduce using rule 2 (var_name -> array_name .)
+    STRING_TYPE     reduce using rule 2 (var_name -> array_name .)
+    CHAR_TYPE       reduce using rule 2 (var_name -> array_name .)
+    FLOAT_TYPE      reduce using rule 2 (var_name -> array_name .)
+    UNSIGNED_TYPE   reduce using rule 2 (var_name -> array_name .)
+    SIGNED_TYPE     reduce using rule 2 (var_name -> array_name .)
+    COLON           reduce using rule 2 (var_name -> array_name .)
 
 
 state 11
 
-    (53) type -> CHAR_TYPE .
-    ID              reduce using rule 53 (type -> CHAR_TYPE .)
-    LBRACE          reduce using rule 53 (type -> CHAR_TYPE .)
+    (4) array_name -> ID LSBRACKET . arithmetic_layer RSBRACKET
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
+    arithmetic_layer               shift and go to state 21
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
 state 12
 
-    (54) type -> FLOAT_TYPE .
-    ID              reduce using rule 54 (type -> FLOAT_TYPE .)
-    LBRACE          reduce using rule 54 (type -> FLOAT_TYPE .)
+    (7) function -> ID LPAREN formal_params RPAREN . COLON return_type scope
+    COLON           shift and go to state 32
 
 
 state 13
 
-    (55) type -> UNSIGNED_TYPE .
-    ID              reduce using rule 55 (type -> UNSIGNED_TYPE .)
-    LBRACE          reduce using rule 55 (type -> UNSIGNED_TYPE .)
+    (9) formal_params -> var_name type . multi_formal_params
+    (10) multi_formal_params -> .
+    (11) multi_formal_params -> . COMMA var_name type multi_formal_params
+    RPAREN          reduce using rule 10 (multi_formal_params -> .)
+    COMMA           shift and go to state 34
 
+    multi_formal_params            shift and go to state 33
 
 state 14
 
-    (56) type -> SIGNED_TYPE .
-    ID              reduce using rule 56 (type -> SIGNED_TYPE .)
-    LBRACE          reduce using rule 56 (type -> SIGNED_TYPE .)
+    (52) type -> BOOL_TYPE .
+    COMMA           reduce using rule 52 (type -> BOOL_TYPE .)
+    RPAREN          reduce using rule 52 (type -> BOOL_TYPE .)
+    LBRACE          reduce using rule 52 (type -> BOOL_TYPE .)
+    ASSIGN          reduce using rule 52 (type -> BOOL_TYPE .)
+    END             reduce using rule 52 (type -> BOOL_TYPE .)
 
 
 state 15
 
-    (4) function -> ID LPAREN params RPAREN . COLON return_type scope
-    COLON           shift and go to state 19
+    (53) type -> STRING_TYPE .
+    COMMA           reduce using rule 53 (type -> STRING_TYPE .)
+    RPAREN          reduce using rule 53 (type -> STRING_TYPE .)
+    LBRACE          reduce using rule 53 (type -> STRING_TYPE .)
+    ASSIGN          reduce using rule 53 (type -> STRING_TYPE .)
+    END             reduce using rule 53 (type -> STRING_TYPE .)
 
 
 state 16
 
-    (8) params -> param_declaration multi_params .
-    RPAREN          reduce using rule 8 (params -> param_declaration multi_params .)
+    (54) type -> CHAR_TYPE .
+    COMMA           reduce using rule 54 (type -> CHAR_TYPE .)
+    RPAREN          reduce using rule 54 (type -> CHAR_TYPE .)
+    LBRACE          reduce using rule 54 (type -> CHAR_TYPE .)
+    ASSIGN          reduce using rule 54 (type -> CHAR_TYPE .)
+    END             reduce using rule 54 (type -> CHAR_TYPE .)
 
 
 state 17
 
-    (10) multi_params -> COMMA . param_declaration multi_params
-    (11) param_declaration -> . type ID
-    (52) type -> . BOOL_TYPE
-    (53) type -> . CHAR_TYPE
-    (54) type -> . FLOAT_TYPE
-    (55) type -> . UNSIGNED_TYPE
-    (56) type -> . SIGNED_TYPE
-    BOOL_TYPE       shift and go to state 10
-    CHAR_TYPE       shift and go to state 11
-    FLOAT_TYPE      shift and go to state 12
-    UNSIGNED_TYPE   shift and go to state 13
-    SIGNED_TYPE     shift and go to state 14
+    (55) type -> FLOAT_TYPE .
+    COMMA           reduce using rule 55 (type -> FLOAT_TYPE .)
+    RPAREN          reduce using rule 55 (type -> FLOAT_TYPE .)
+    LBRACE          reduce using rule 55 (type -> FLOAT_TYPE .)
+    ASSIGN          reduce using rule 55 (type -> FLOAT_TYPE .)
+    END             reduce using rule 55 (type -> FLOAT_TYPE .)
 
-    param_declaration              shift and go to state 20
-    type                           shift and go to state 9
 
 state 18
 
-    (11) param_declaration -> type ID .
-    COMMA           reduce using rule 11 (param_declaration -> type ID .)
-    RPAREN          reduce using rule 11 (param_declaration -> type ID .)
+    (56) type -> UNSIGNED_TYPE .
+    COMMA           reduce using rule 56 (type -> UNSIGNED_TYPE .)
+    RPAREN          reduce using rule 56 (type -> UNSIGNED_TYPE .)
+    LBRACE          reduce using rule 56 (type -> UNSIGNED_TYPE .)
+    ASSIGN          reduce using rule 56 (type -> UNSIGNED_TYPE .)
+    END             reduce using rule 56 (type -> UNSIGNED_TYPE .)
 
 
 state 19
 
-    (4) function -> ID LPAREN params RPAREN COLON . return_type scope
-    (5) return_type -> . ABYSS_TYPE
-    (6) return_type -> . type
-    (52) type -> . BOOL_TYPE
-    (53) type -> . CHAR_TYPE
-    (54) type -> . FLOAT_TYPE
-    (55) type -> . UNSIGNED_TYPE
-    (56) type -> . SIGNED_TYPE
-    ABYSS_TYPE      shift and go to state 22
-    BOOL_TYPE       shift and go to state 10
-    CHAR_TYPE       shift and go to state 11
-    FLOAT_TYPE      shift and go to state 12
-    UNSIGNED_TYPE   shift and go to state 13
-    SIGNED_TYPE     shift and go to state 14
+    (57) type -> SIGNED_TYPE .
+    COMMA           reduce using rule 57 (type -> SIGNED_TYPE .)
+    RPAREN          reduce using rule 57 (type -> SIGNED_TYPE .)
+    LBRACE          reduce using rule 57 (type -> SIGNED_TYPE .)
+    ASSIGN          reduce using rule 57 (type -> SIGNED_TYPE .)
+    END             reduce using rule 57 (type -> SIGNED_TYPE .)
 
-    return_type                    shift and go to state 21
-    type                           shift and go to state 23
 
 state 20
 
-    (10) multi_params -> COMMA param_declaration . multi_params
-    (9) multi_params -> .
-    (10) multi_params -> . COMMA param_declaration multi_params
-    RPAREN          reduce using rule 9 (multi_params -> .)
-    COMMA           shift and go to state 17
-
-    multi_params                   shift and go to state 24
-
-state 21
-
-    (4) function -> ID LPAREN params RPAREN COLON return_type . scope
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    LBRACE          shift and go to state 26
-
-    scope                          shift and go to state 25
-
-state 22
-
-    (5) return_type -> ABYSS_TYPE .
-    LBRACE          reduce using rule 5 (return_type -> ABYSS_TYPE .)
-
-
-state 23
-
-    (6) return_type -> type .
-    LBRACE          reduce using rule 6 (return_type -> type .)
-
-
-state 24
-
-    (10) multi_params -> COMMA param_declaration multi_params .
-    RPAREN          reduce using rule 10 (multi_params -> COMMA param_declaration multi_params .)
-
-
-state 25
-
-    (4) function -> ID LPAREN params RPAREN COLON return_type scope .
-    ID              reduce using rule 4 (function -> ID LPAREN params RPAREN COLON return_type scope .)
-    $end            reduce using rule 4 (function -> ID LPAREN params RPAREN COLON return_type scope .)
-
-
-state 26
-
-    (61) scope -> LBRACE . new_scope statements pop_scope RBRACE
-    (62) new_scope -> .
-    END             reduce using rule 62 (new_scope -> .)
-    IF              reduce using rule 62 (new_scope -> .)
-    WHILE           reduce using rule 62 (new_scope -> .)
-    LBRACE          reduce using rule 62 (new_scope -> .)
-    ID              reduce using rule 62 (new_scope -> .)
-    BOOL_TYPE       reduce using rule 62 (new_scope -> .)
-    CHAR_TYPE       reduce using rule 62 (new_scope -> .)
-    FLOAT_TYPE      reduce using rule 62 (new_scope -> .)
-    UNSIGNED_TYPE   reduce using rule 62 (new_scope -> .)
-    SIGNED_TYPE     reduce using rule 62 (new_scope -> .)
-    LPAREN          reduce using rule 62 (new_scope -> .)
-    CHAR_VALUE      reduce using rule 62 (new_scope -> .)
-    BOOL_VALUE      reduce using rule 62 (new_scope -> .)
-    FLOAT_VALUE     reduce using rule 62 (new_scope -> .)
-    INTEGRAL_VALUE  reduce using rule 62 (new_scope -> .)
-    RBRACE          reduce using rule 62 (new_scope -> .)
-
-    new_scope                      shift and go to state 27
-
-state 27
-
-    (61) scope -> LBRACE new_scope . statements pop_scope RBRACE
-    (17) statements -> .
-    (18) statements -> . statement statements
-    (19) statement -> . END
-    (20) statement -> . if_statement
-    (21) statement -> . while_statement
-    (22) statement -> . scope
-    (23) statement -> . array_get
-    (24) statement -> . array_assign
-    (25) statement -> . array_create
-    (26) statement -> . assignment
-    (27) statement -> . declaration_init
-    (28) statement -> . declaration
-    (29) statement -> . expression_statement
-    (65) if_statement -> . IF LPAREN expression RPAREN scope else_statement
-    (64) while_statement -> . WHILE LPAREN expression RPAREN scope
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    (35) array_get -> . ID LSBRACKET term RSBRACKET
-    (34) array_assign -> . ID LSBRACKET term RSBRACKET ASSIGN expression END
-    (33) array_create -> . type ID LSBRACKET term RSBRACKET END
-    (32) assignment -> . ID ASSIGN expression END
-    (31) declaration_init -> . type ID ASSIGN expression END
-    (30) declaration -> . type ID END
-    (36) expression_statement -> . expression END
-    (52) type -> . BOOL_TYPE
-    (53) type -> . CHAR_TYPE
-    (54) type -> . FLOAT_TYPE
-    (55) type -> . UNSIGNED_TYPE
-    (56) type -> . SIGNED_TYPE
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    RBRACE          reduce using rule 17 (statements -> .)
-    END             shift and go to state 30
-    IF              shift and go to state 41
-    WHILE           shift and go to state 44
-    LBRACE          shift and go to state 26
-    ID              shift and go to state 45
-    BOOL_TYPE       shift and go to state 10
-    CHAR_TYPE       shift and go to state 11
-    FLOAT_TYPE      shift and go to state 12
-    UNSIGNED_TYPE   shift and go to state 13
-    SIGNED_TYPE     shift and go to state 14
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    statements                     shift and go to state 28
-    statement                      shift and go to state 29
-    if_statement                   shift and go to state 31
-    while_statement                shift and go to state 32
-    scope                          shift and go to state 33
-    array_get                      shift and go to state 34
-    array_assign                   shift and go to state 35
-    array_create                   shift and go to state 36
-    assignment                     shift and go to state 37
-    declaration_init               shift and go to state 38
-    declaration                    shift and go to state 39
-    expression_statement           shift and go to state 40
-    expression                     shift and go to state 43
-    term                           shift and go to state 46
-    type                           shift and go to state 47
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 28
-
-    (61) scope -> LBRACE new_scope statements . pop_scope RBRACE
-    (63) pop_scope -> .
-    RBRACE          reduce using rule 63 (pop_scope -> .)
-
-    pop_scope                      shift and go to state 57
-
-state 29
-
-    (18) statements -> statement . statements
-    (17) statements -> .
-    (18) statements -> . statement statements
-    (19) statement -> . END
-    (20) statement -> . if_statement
-    (21) statement -> . while_statement
-    (22) statement -> . scope
-    (23) statement -> . array_get
-    (24) statement -> . array_assign
-    (25) statement -> . array_create
-    (26) statement -> . assignment
-    (27) statement -> . declaration_init
-    (28) statement -> . declaration
-    (29) statement -> . expression_statement
-    (65) if_statement -> . IF LPAREN expression RPAREN scope else_statement
-    (64) while_statement -> . WHILE LPAREN expression RPAREN scope
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    (35) array_get -> . ID LSBRACKET term RSBRACKET
-    (34) array_assign -> . ID LSBRACKET term RSBRACKET ASSIGN expression END
-    (33) array_create -> . type ID LSBRACKET term RSBRACKET END
-    (32) assignment -> . ID ASSIGN expression END
-    (31) declaration_init -> . type ID ASSIGN expression END
-    (30) declaration -> . type ID END
-    (36) expression_statement -> . expression END
-    (52) type -> . BOOL_TYPE
-    (53) type -> . CHAR_TYPE
-    (54) type -> . FLOAT_TYPE
-    (55) type -> . UNSIGNED_TYPE
-    (56) type -> . SIGNED_TYPE
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    RBRACE          reduce using rule 17 (statements -> .)
-    END             shift and go to state 30
-    IF              shift and go to state 41
-    WHILE           shift and go to state 44
-    LBRACE          shift and go to state 26
-    ID              shift and go to state 45
-    BOOL_TYPE       shift and go to state 10
-    CHAR_TYPE       shift and go to state 11
-    FLOAT_TYPE      shift and go to state 12
-    UNSIGNED_TYPE   shift and go to state 13
-    SIGNED_TYPE     shift and go to state 14
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    statement                      shift and go to state 29
-    statements                     shift and go to state 58
-    if_statement                   shift and go to state 31
-    while_statement                shift and go to state 32
-    scope                          shift and go to state 33
-    array_get                      shift and go to state 34
-    array_assign                   shift and go to state 35
-    array_create                   shift and go to state 36
-    assignment                     shift and go to state 37
-    declaration_init               shift and go to state 38
-    declaration                    shift and go to state 39
-    expression_statement           shift and go to state 40
-    expression                     shift and go to state 43
-    term                           shift and go to state 46
-    type                           shift and go to state 47
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 30
-
-    (19) statement -> END .
-    END             reduce using rule 19 (statement -> END .)
-    IF              reduce using rule 19 (statement -> END .)
-    WHILE           reduce using rule 19 (statement -> END .)
-    LBRACE          reduce using rule 19 (statement -> END .)
-    ID              reduce using rule 19 (statement -> END .)
-    BOOL_TYPE       reduce using rule 19 (statement -> END .)
-    CHAR_TYPE       reduce using rule 19 (statement -> END .)
-    FLOAT_TYPE      reduce using rule 19 (statement -> END .)
-    UNSIGNED_TYPE   reduce using rule 19 (statement -> END .)
-    SIGNED_TYPE     reduce using rule 19 (statement -> END .)
-    LPAREN          reduce using rule 19 (statement -> END .)
-    CHAR_VALUE      reduce using rule 19 (statement -> END .)
-    BOOL_VALUE      reduce using rule 19 (statement -> END .)
-    FLOAT_VALUE     reduce using rule 19 (statement -> END .)
-    INTEGRAL_VALUE  reduce using rule 19 (statement -> END .)
-    RBRACE          reduce using rule 19 (statement -> END .)
-
-
-state 31
-
-    (20) statement -> if_statement .
-    END             reduce using rule 20 (statement -> if_statement .)
-    IF              reduce using rule 20 (statement -> if_statement .)
-    WHILE           reduce using rule 20 (statement -> if_statement .)
-    LBRACE          reduce using rule 20 (statement -> if_statement .)
-    ID              reduce using rule 20 (statement -> if_statement .)
-    BOOL_TYPE       reduce using rule 20 (statement -> if_statement .)
-    CHAR_TYPE       reduce using rule 20 (statement -> if_statement .)
-    FLOAT_TYPE      reduce using rule 20 (statement -> if_statement .)
-    UNSIGNED_TYPE   reduce using rule 20 (statement -> if_statement .)
-    SIGNED_TYPE     reduce using rule 20 (statement -> if_statement .)
-    LPAREN          reduce using rule 20 (statement -> if_statement .)
-    CHAR_VALUE      reduce using rule 20 (statement -> if_statement .)
-    BOOL_VALUE      reduce using rule 20 (statement -> if_statement .)
-    FLOAT_VALUE     reduce using rule 20 (statement -> if_statement .)
-    INTEGRAL_VALUE  reduce using rule 20 (statement -> if_statement .)
-    RBRACE          reduce using rule 20 (statement -> if_statement .)
-
-
-state 32
-
-    (21) statement -> while_statement .
-    END             reduce using rule 21 (statement -> while_statement .)
-    IF              reduce using rule 21 (statement -> while_statement .)
-    WHILE           reduce using rule 21 (statement -> while_statement .)
-    LBRACE          reduce using rule 21 (statement -> while_statement .)
-    ID              reduce using rule 21 (statement -> while_statement .)
-    BOOL_TYPE       reduce using rule 21 (statement -> while_statement .)
-    CHAR_TYPE       reduce using rule 21 (statement -> while_statement .)
-    FLOAT_TYPE      reduce using rule 21 (statement -> while_statement .)
-    UNSIGNED_TYPE   reduce using rule 21 (statement -> while_statement .)
-    SIGNED_TYPE     reduce using rule 21 (statement -> while_statement .)
-    LPAREN          reduce using rule 21 (statement -> while_statement .)
-    CHAR_VALUE      reduce using rule 21 (statement -> while_statement .)
-    BOOL_VALUE      reduce using rule 21 (statement -> while_statement .)
-    FLOAT_VALUE     reduce using rule 21 (statement -> while_statement .)
-    INTEGRAL_VALUE  reduce using rule 21 (statement -> while_statement .)
-    RBRACE          reduce using rule 21 (statement -> while_statement .)
-
-
-state 33
-
-    (22) statement -> scope .
-    END             reduce using rule 22 (statement -> scope .)
-    IF              reduce using rule 22 (statement -> scope .)
-    WHILE           reduce using rule 22 (statement -> scope .)
-    LBRACE          reduce using rule 22 (statement -> scope .)
-    ID              reduce using rule 22 (statement -> scope .)
-    BOOL_TYPE       reduce using rule 22 (statement -> scope .)
-    CHAR_TYPE       reduce using rule 22 (statement -> scope .)
-    FLOAT_TYPE      reduce using rule 22 (statement -> scope .)
-    UNSIGNED_TYPE   reduce using rule 22 (statement -> scope .)
-    SIGNED_TYPE     reduce using rule 22 (statement -> scope .)
-    LPAREN          reduce using rule 22 (statement -> scope .)
-    CHAR_VALUE      reduce using rule 22 (statement -> scope .)
-    BOOL_VALUE      reduce using rule 22 (statement -> scope .)
-    FLOAT_VALUE     reduce using rule 22 (statement -> scope .)
-    INTEGRAL_VALUE  reduce using rule 22 (statement -> scope .)
-    RBRACE          reduce using rule 22 (statement -> scope .)
-
-
-state 34
-
-    (23) statement -> array_get .
-    END             reduce using rule 23 (statement -> array_get .)
-    IF              reduce using rule 23 (statement -> array_get .)
-    WHILE           reduce using rule 23 (statement -> array_get .)
-    LBRACE          reduce using rule 23 (statement -> array_get .)
-    ID              reduce using rule 23 (statement -> array_get .)
-    BOOL_TYPE       reduce using rule 23 (statement -> array_get .)
-    CHAR_TYPE       reduce using rule 23 (statement -> array_get .)
-    FLOAT_TYPE      reduce using rule 23 (statement -> array_get .)
-    UNSIGNED_TYPE   reduce using rule 23 (statement -> array_get .)
-    SIGNED_TYPE     reduce using rule 23 (statement -> array_get .)
-    LPAREN          reduce using rule 23 (statement -> array_get .)
-    CHAR_VALUE      reduce using rule 23 (statement -> array_get .)
-    BOOL_VALUE      reduce using rule 23 (statement -> array_get .)
-    FLOAT_VALUE     reduce using rule 23 (statement -> array_get .)
-    INTEGRAL_VALUE  reduce using rule 23 (statement -> array_get .)
-    RBRACE          reduce using rule 23 (statement -> array_get .)
-
-
-state 35
-
-    (24) statement -> array_assign .
-    END             reduce using rule 24 (statement -> array_assign .)
-    IF              reduce using rule 24 (statement -> array_assign .)
-    WHILE           reduce using rule 24 (statement -> array_assign .)
-    LBRACE          reduce using rule 24 (statement -> array_assign .)
-    ID              reduce using rule 24 (statement -> array_assign .)
-    BOOL_TYPE       reduce using rule 24 (statement -> array_assign .)
-    CHAR_TYPE       reduce using rule 24 (statement -> array_assign .)
-    FLOAT_TYPE      reduce using rule 24 (statement -> array_assign .)
-    UNSIGNED_TYPE   reduce using rule 24 (statement -> array_assign .)
-    SIGNED_TYPE     reduce using rule 24 (statement -> array_assign .)
-    LPAREN          reduce using rule 24 (statement -> array_assign .)
-    CHAR_VALUE      reduce using rule 24 (statement -> array_assign .)
-    BOOL_VALUE      reduce using rule 24 (statement -> array_assign .)
-    FLOAT_VALUE     reduce using rule 24 (statement -> array_assign .)
-    INTEGRAL_VALUE  reduce using rule 24 (statement -> array_assign .)
-    RBRACE          reduce using rule 24 (statement -> array_assign .)
-
-
-state 36
-
-    (25) statement -> array_create .
-    END             reduce using rule 25 (statement -> array_create .)
-    IF              reduce using rule 25 (statement -> array_create .)
-    WHILE           reduce using rule 25 (statement -> array_create .)
-    LBRACE          reduce using rule 25 (statement -> array_create .)
-    ID              reduce using rule 25 (statement -> array_create .)
-    BOOL_TYPE       reduce using rule 25 (statement -> array_create .)
-    CHAR_TYPE       reduce using rule 25 (statement -> array_create .)
-    FLOAT_TYPE      reduce using rule 25 (statement -> array_create .)
-    UNSIGNED_TYPE   reduce using rule 25 (statement -> array_create .)
-    SIGNED_TYPE     reduce using rule 25 (statement -> array_create .)
-    LPAREN          reduce using rule 25 (statement -> array_create .)
-    CHAR_VALUE      reduce using rule 25 (statement -> array_create .)
-    BOOL_VALUE      reduce using rule 25 (statement -> array_create .)
-    FLOAT_VALUE     reduce using rule 25 (statement -> array_create .)
-    INTEGRAL_VALUE  reduce using rule 25 (statement -> array_create .)
-    RBRACE          reduce using rule 25 (statement -> array_create .)
-
-
-state 37
-
-    (26) statement -> assignment .
-    END             reduce using rule 26 (statement -> assignment .)
-    IF              reduce using rule 26 (statement -> assignment .)
-    WHILE           reduce using rule 26 (statement -> assignment .)
-    LBRACE          reduce using rule 26 (statement -> assignment .)
-    ID              reduce using rule 26 (statement -> assignment .)
-    BOOL_TYPE       reduce using rule 26 (statement -> assignment .)
-    CHAR_TYPE       reduce using rule 26 (statement -> assignment .)
-    FLOAT_TYPE      reduce using rule 26 (statement -> assignment .)
-    UNSIGNED_TYPE   reduce using rule 26 (statement -> assignment .)
-    SIGNED_TYPE     reduce using rule 26 (statement -> assignment .)
-    LPAREN          reduce using rule 26 (statement -> assignment .)
-    CHAR_VALUE      reduce using rule 26 (statement -> assignment .)
-    BOOL_VALUE      reduce using rule 26 (statement -> assignment .)
-    FLOAT_VALUE     reduce using rule 26 (statement -> assignment .)
-    INTEGRAL_VALUE  reduce using rule 26 (statement -> assignment .)
-    RBRACE          reduce using rule 26 (statement -> assignment .)
-
-
-state 38
-
-    (27) statement -> declaration_init .
-    END             reduce using rule 27 (statement -> declaration_init .)
-    IF              reduce using rule 27 (statement -> declaration_init .)
-    WHILE           reduce using rule 27 (statement -> declaration_init .)
-    LBRACE          reduce using rule 27 (statement -> declaration_init .)
-    ID              reduce using rule 27 (statement -> declaration_init .)
-    BOOL_TYPE       reduce using rule 27 (statement -> declaration_init .)
-    CHAR_TYPE       reduce using rule 27 (statement -> declaration_init .)
-    FLOAT_TYPE      reduce using rule 27 (statement -> declaration_init .)
-    UNSIGNED_TYPE   reduce using rule 27 (statement -> declaration_init .)
-    SIGNED_TYPE     reduce using rule 27 (statement -> declaration_init .)
-    LPAREN          reduce using rule 27 (statement -> declaration_init .)
-    CHAR_VALUE      reduce using rule 27 (statement -> declaration_init .)
-    BOOL_VALUE      reduce using rule 27 (statement -> declaration_init .)
-    FLOAT_VALUE     reduce using rule 27 (statement -> declaration_init .)
-    INTEGRAL_VALUE  reduce using rule 27 (statement -> declaration_init .)
-    RBRACE          reduce using rule 27 (statement -> declaration_init .)
-
-
-state 39
-
-    (28) statement -> declaration .
-    END             reduce using rule 28 (statement -> declaration .)
-    IF              reduce using rule 28 (statement -> declaration .)
-    WHILE           reduce using rule 28 (statement -> declaration .)
-    LBRACE          reduce using rule 28 (statement -> declaration .)
-    ID              reduce using rule 28 (statement -> declaration .)
-    BOOL_TYPE       reduce using rule 28 (statement -> declaration .)
-    CHAR_TYPE       reduce using rule 28 (statement -> declaration .)
-    FLOAT_TYPE      reduce using rule 28 (statement -> declaration .)
-    UNSIGNED_TYPE   reduce using rule 28 (statement -> declaration .)
-    SIGNED_TYPE     reduce using rule 28 (statement -> declaration .)
-    LPAREN          reduce using rule 28 (statement -> declaration .)
-    CHAR_VALUE      reduce using rule 28 (statement -> declaration .)
-    BOOL_VALUE      reduce using rule 28 (statement -> declaration .)
-    FLOAT_VALUE     reduce using rule 28 (statement -> declaration .)
-    INTEGRAL_VALUE  reduce using rule 28 (statement -> declaration .)
-    RBRACE          reduce using rule 28 (statement -> declaration .)
-
-
-state 40
-
-    (29) statement -> expression_statement .
-    END             reduce using rule 29 (statement -> expression_statement .)
-    IF              reduce using rule 29 (statement -> expression_statement .)
-    WHILE           reduce using rule 29 (statement -> expression_statement .)
-    LBRACE          reduce using rule 29 (statement -> expression_statement .)
-    ID              reduce using rule 29 (statement -> expression_statement .)
-    BOOL_TYPE       reduce using rule 29 (statement -> expression_statement .)
-    CHAR_TYPE       reduce using rule 29 (statement -> expression_statement .)
-    FLOAT_TYPE      reduce using rule 29 (statement -> expression_statement .)
-    UNSIGNED_TYPE   reduce using rule 29 (statement -> expression_statement .)
-    SIGNED_TYPE     reduce using rule 29 (statement -> expression_statement .)
-    LPAREN          reduce using rule 29 (statement -> expression_statement .)
-    CHAR_VALUE      reduce using rule 29 (statement -> expression_statement .)
-    BOOL_VALUE      reduce using rule 29 (statement -> expression_statement .)
-    FLOAT_VALUE     reduce using rule 29 (statement -> expression_statement .)
-    INTEGRAL_VALUE  reduce using rule 29 (statement -> expression_statement .)
-    RBRACE          reduce using rule 29 (statement -> expression_statement .)
-
-
-state 41
-
-    (65) if_statement -> IF . LPAREN expression RPAREN scope else_statement
-    LPAREN          shift and go to state 59
-
-
-state 42
-
-    (50) factor -> LPAREN . expression RPAREN
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    expression                     shift and go to state 60
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 43
-
-    (36) expression_statement -> expression . END
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    END             shift and go to state 62
-    OR              shift and go to state 63
-    AND             shift and go to state 64
-
-
-state 44
-
-    (64) while_statement -> WHILE . LPAREN expression RPAREN scope
-    LPAREN          shift and go to state 65
-
-
-state 45
-
-    (35) array_get -> ID . LSBRACKET term RSBRACKET
-    (34) array_assign -> ID . LSBRACKET term RSBRACKET ASSIGN expression END
-    (32) assignment -> ID . ASSIGN expression END
     (48) factor -> ID .
     (12) function_call -> ID . LPAREN actual_params RPAREN
-    LSBRACKET       shift and go to state 66
-    ASSIGN          shift and go to state 67
     DIVISION        reduce using rule 48 (factor -> ID .)
     MULTIPLICATION  reduce using rule 48 (factor -> ID .)
+    RSBRACKET       reduce using rule 48 (factor -> ID .)
     MINUS           reduce using rule 48 (factor -> ID .)
     PLUS            reduce using rule 48 (factor -> ID .)
     COMPARATOR      reduce using rule 48 (factor -> ID .)
-    END             reduce using rule 48 (factor -> ID .)
+    RPAREN          reduce using rule 48 (factor -> ID .)
     OR              reduce using rule 48 (factor -> ID .)
     AND             reduce using rule 48 (factor -> ID .)
-    LPAREN          shift and go to state 68
+    COMMA           reduce using rule 48 (factor -> ID .)
+    END             reduce using rule 48 (factor -> ID .)
+    LPAREN          shift and go to state 35
 
 
-state 46
+state 21
+
+    (4) array_name -> ID LSBRACKET arithmetic_layer . RSBRACKET
+    (43) arithmetic_layer -> arithmetic_layer . MINUS term
+    (44) arithmetic_layer -> arithmetic_layer . PLUS term
+    RSBRACKET       shift and go to state 36
+    MINUS           shift and go to state 37
+    PLUS            shift and go to state 38
+
+
+state 22
 
     (42) arithmetic_layer -> term .
     (46) term -> term . DIVISION factor
     (47) term -> term . MULTIPLICATION factor
+    RSBRACKET       reduce using rule 42 (arithmetic_layer -> term .)
     MINUS           reduce using rule 42 (arithmetic_layer -> term .)
     PLUS            reduce using rule 42 (arithmetic_layer -> term .)
     COMPARATOR      reduce using rule 42 (arithmetic_layer -> term .)
-    END             reduce using rule 42 (arithmetic_layer -> term .)
+    RPAREN          reduce using rule 42 (arithmetic_layer -> term .)
     OR              reduce using rule 42 (arithmetic_layer -> term .)
     AND             reduce using rule 42 (arithmetic_layer -> term .)
-    RPAREN          reduce using rule 42 (arithmetic_layer -> term .)
     COMMA           reduce using rule 42 (arithmetic_layer -> term .)
-    DIVISION        shift and go to state 69
-    MULTIPLICATION  shift and go to state 70
+    END             reduce using rule 42 (arithmetic_layer -> term .)
+    DIVISION        shift and go to state 39
+    MULTIPLICATION  shift and go to state 40
 
 
-state 47
-
-    (33) array_create -> type . ID LSBRACKET term RSBRACKET END
-    (31) declaration_init -> type . ID ASSIGN expression END
-    (30) declaration -> type . ID END
-    ID              shift and go to state 71
-
-
-state 48
-
-    (37) expression -> comparison_layer .
-    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
-    END             reduce using rule 37 (expression -> comparison_layer .)
-    OR              reduce using rule 37 (expression -> comparison_layer .)
-    AND             reduce using rule 37 (expression -> comparison_layer .)
-    RPAREN          reduce using rule 37 (expression -> comparison_layer .)
-    COMMA           reduce using rule 37 (expression -> comparison_layer .)
-    COMPARATOR      shift and go to state 72
-
-
-state 49
-
-    (40) comparison_layer -> arithmetic_layer .
-    (43) arithmetic_layer -> arithmetic_layer . MINUS term
-    (44) arithmetic_layer -> arithmetic_layer . PLUS term
-    COMPARATOR      reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    END             reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    OR              reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    AND             reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    RPAREN          reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    COMMA           reduce using rule 40 (comparison_layer -> arithmetic_layer .)
-    MINUS           shift and go to state 73
-    PLUS            shift and go to state 74
-
-
-state 50
+state 23
 
     (45) term -> factor .
     DIVISION        reduce using rule 45 (term -> factor .)
     MULTIPLICATION  reduce using rule 45 (term -> factor .)
+    RSBRACKET       reduce using rule 45 (term -> factor .)
     MINUS           reduce using rule 45 (term -> factor .)
     PLUS            reduce using rule 45 (term -> factor .)
     COMPARATOR      reduce using rule 45 (term -> factor .)
-    END             reduce using rule 45 (term -> factor .)
+    RPAREN          reduce using rule 45 (term -> factor .)
     OR              reduce using rule 45 (term -> factor .)
     AND             reduce using rule 45 (term -> factor .)
-    RPAREN          reduce using rule 45 (term -> factor .)
     COMMA           reduce using rule 45 (term -> factor .)
-    RSBRACKET       reduce using rule 45 (term -> factor .)
+    END             reduce using rule 45 (term -> factor .)
 
 
-state 51
+state 24
 
     (49) factor -> value .
     DIVISION        reduce using rule 49 (factor -> value .)
     MULTIPLICATION  reduce using rule 49 (factor -> value .)
+    RSBRACKET       reduce using rule 49 (factor -> value .)
     MINUS           reduce using rule 49 (factor -> value .)
     PLUS            reduce using rule 49 (factor -> value .)
     COMPARATOR      reduce using rule 49 (factor -> value .)
-    END             reduce using rule 49 (factor -> value .)
+    RPAREN          reduce using rule 49 (factor -> value .)
     OR              reduce using rule 49 (factor -> value .)
     AND             reduce using rule 49 (factor -> value .)
-    RPAREN          reduce using rule 49 (factor -> value .)
     COMMA           reduce using rule 49 (factor -> value .)
-    RSBRACKET       reduce using rule 49 (factor -> value .)
+    END             reduce using rule 49 (factor -> value .)
 
 
-state 52
+state 25
 
-    (51) factor -> function_call .
-    DIVISION        reduce using rule 51 (factor -> function_call .)
-    MULTIPLICATION  reduce using rule 51 (factor -> function_call .)
-    MINUS           reduce using rule 51 (factor -> function_call .)
-    PLUS            reduce using rule 51 (factor -> function_call .)
-    COMPARATOR      reduce using rule 51 (factor -> function_call .)
-    END             reduce using rule 51 (factor -> function_call .)
-    OR              reduce using rule 51 (factor -> function_call .)
-    AND             reduce using rule 51 (factor -> function_call .)
-    RPAREN          reduce using rule 51 (factor -> function_call .)
-    COMMA           reduce using rule 51 (factor -> function_call .)
-    RSBRACKET       reduce using rule 51 (factor -> function_call .)
-
-
-state 53
-
-    (57) value -> CHAR_VALUE .
-    DIVISION        reduce using rule 57 (value -> CHAR_VALUE .)
-    MULTIPLICATION  reduce using rule 57 (value -> CHAR_VALUE .)
-    MINUS           reduce using rule 57 (value -> CHAR_VALUE .)
-    PLUS            reduce using rule 57 (value -> CHAR_VALUE .)
-    COMPARATOR      reduce using rule 57 (value -> CHAR_VALUE .)
-    END             reduce using rule 57 (value -> CHAR_VALUE .)
-    OR              reduce using rule 57 (value -> CHAR_VALUE .)
-    AND             reduce using rule 57 (value -> CHAR_VALUE .)
-    RPAREN          reduce using rule 57 (value -> CHAR_VALUE .)
-    COMMA           reduce using rule 57 (value -> CHAR_VALUE .)
-    RSBRACKET       reduce using rule 57 (value -> CHAR_VALUE .)
-
-
-state 54
-
-    (58) value -> BOOL_VALUE .
-    DIVISION        reduce using rule 58 (value -> BOOL_VALUE .)
-    MULTIPLICATION  reduce using rule 58 (value -> BOOL_VALUE .)
-    MINUS           reduce using rule 58 (value -> BOOL_VALUE .)
-    PLUS            reduce using rule 58 (value -> BOOL_VALUE .)
-    COMPARATOR      reduce using rule 58 (value -> BOOL_VALUE .)
-    END             reduce using rule 58 (value -> BOOL_VALUE .)
-    OR              reduce using rule 58 (value -> BOOL_VALUE .)
-    AND             reduce using rule 58 (value -> BOOL_VALUE .)
-    RPAREN          reduce using rule 58 (value -> BOOL_VALUE .)
-    COMMA           reduce using rule 58 (value -> BOOL_VALUE .)
-    RSBRACKET       reduce using rule 58 (value -> BOOL_VALUE .)
-
-
-state 55
-
-    (59) value -> FLOAT_VALUE .
-    DIVISION        reduce using rule 59 (value -> FLOAT_VALUE .)
-    MULTIPLICATION  reduce using rule 59 (value -> FLOAT_VALUE .)
-    MINUS           reduce using rule 59 (value -> FLOAT_VALUE .)
-    PLUS            reduce using rule 59 (value -> FLOAT_VALUE .)
-    COMPARATOR      reduce using rule 59 (value -> FLOAT_VALUE .)
-    END             reduce using rule 59 (value -> FLOAT_VALUE .)
-    OR              reduce using rule 59 (value -> FLOAT_VALUE .)
-    AND             reduce using rule 59 (value -> FLOAT_VALUE .)
-    RPAREN          reduce using rule 59 (value -> FLOAT_VALUE .)
-    COMMA           reduce using rule 59 (value -> FLOAT_VALUE .)
-    RSBRACKET       reduce using rule 59 (value -> FLOAT_VALUE .)
-
-
-state 56
-
-    (60) value -> INTEGRAL_VALUE .
-    DIVISION        reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    MULTIPLICATION  reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    MINUS           reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    PLUS            reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    COMPARATOR      reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    END             reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    OR              reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    AND             reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    RPAREN          reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    COMMA           reduce using rule 60 (value -> INTEGRAL_VALUE .)
-    RSBRACKET       reduce using rule 60 (value -> INTEGRAL_VALUE .)
-
-
-state 57
-
-    (61) scope -> LBRACE new_scope statements pop_scope . RBRACE
-    RBRACE          shift and go to state 75
-
-
-state 58
-
-    (18) statements -> statement statements .
-    RBRACE          reduce using rule 18 (statements -> statement statements .)
-
-
-state 59
-
-    (65) if_statement -> IF LPAREN . expression RPAREN scope else_statement
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
+    (50) factor -> LPAREN . expression RPAREN
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
     (40) comparison_layer -> . arithmetic_layer
     (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
     (42) arithmetic_layer -> . term
@@ -1083,40 +465,355 @@ state 59
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    expression                     shift and go to state 76
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    expression                     shift and go to state 41
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 60
+state 26
+
+    (51) factor -> function_call .
+    DIVISION        reduce using rule 51 (factor -> function_call .)
+    MULTIPLICATION  reduce using rule 51 (factor -> function_call .)
+    RSBRACKET       reduce using rule 51 (factor -> function_call .)
+    MINUS           reduce using rule 51 (factor -> function_call .)
+    PLUS            reduce using rule 51 (factor -> function_call .)
+    COMPARATOR      reduce using rule 51 (factor -> function_call .)
+    RPAREN          reduce using rule 51 (factor -> function_call .)
+    OR              reduce using rule 51 (factor -> function_call .)
+    AND             reduce using rule 51 (factor -> function_call .)
+    COMMA           reduce using rule 51 (factor -> function_call .)
+    END             reduce using rule 51 (factor -> function_call .)
+
+
+state 27
+
+    (60) value -> STRING_VALUE .
+    DIVISION        reduce using rule 60 (value -> STRING_VALUE .)
+    MULTIPLICATION  reduce using rule 60 (value -> STRING_VALUE .)
+    RSBRACKET       reduce using rule 60 (value -> STRING_VALUE .)
+    MINUS           reduce using rule 60 (value -> STRING_VALUE .)
+    PLUS            reduce using rule 60 (value -> STRING_VALUE .)
+    COMPARATOR      reduce using rule 60 (value -> STRING_VALUE .)
+    RPAREN          reduce using rule 60 (value -> STRING_VALUE .)
+    OR              reduce using rule 60 (value -> STRING_VALUE .)
+    AND             reduce using rule 60 (value -> STRING_VALUE .)
+    COMMA           reduce using rule 60 (value -> STRING_VALUE .)
+    END             reduce using rule 60 (value -> STRING_VALUE .)
+
+
+state 28
+
+    (61) value -> CHAR_VALUE .
+    DIVISION        reduce using rule 61 (value -> CHAR_VALUE .)
+    MULTIPLICATION  reduce using rule 61 (value -> CHAR_VALUE .)
+    RSBRACKET       reduce using rule 61 (value -> CHAR_VALUE .)
+    MINUS           reduce using rule 61 (value -> CHAR_VALUE .)
+    PLUS            reduce using rule 61 (value -> CHAR_VALUE .)
+    COMPARATOR      reduce using rule 61 (value -> CHAR_VALUE .)
+    RPAREN          reduce using rule 61 (value -> CHAR_VALUE .)
+    OR              reduce using rule 61 (value -> CHAR_VALUE .)
+    AND             reduce using rule 61 (value -> CHAR_VALUE .)
+    COMMA           reduce using rule 61 (value -> CHAR_VALUE .)
+    END             reduce using rule 61 (value -> CHAR_VALUE .)
+
+
+state 29
+
+    (62) value -> BOOL_VALUE .
+    DIVISION        reduce using rule 62 (value -> BOOL_VALUE .)
+    MULTIPLICATION  reduce using rule 62 (value -> BOOL_VALUE .)
+    RSBRACKET       reduce using rule 62 (value -> BOOL_VALUE .)
+    MINUS           reduce using rule 62 (value -> BOOL_VALUE .)
+    PLUS            reduce using rule 62 (value -> BOOL_VALUE .)
+    COMPARATOR      reduce using rule 62 (value -> BOOL_VALUE .)
+    RPAREN          reduce using rule 62 (value -> BOOL_VALUE .)
+    OR              reduce using rule 62 (value -> BOOL_VALUE .)
+    AND             reduce using rule 62 (value -> BOOL_VALUE .)
+    COMMA           reduce using rule 62 (value -> BOOL_VALUE .)
+    END             reduce using rule 62 (value -> BOOL_VALUE .)
+
+
+state 30
+
+    (63) value -> FLOAT_VALUE .
+    DIVISION        reduce using rule 63 (value -> FLOAT_VALUE .)
+    MULTIPLICATION  reduce using rule 63 (value -> FLOAT_VALUE .)
+    RSBRACKET       reduce using rule 63 (value -> FLOAT_VALUE .)
+    MINUS           reduce using rule 63 (value -> FLOAT_VALUE .)
+    PLUS            reduce using rule 63 (value -> FLOAT_VALUE .)
+    COMPARATOR      reduce using rule 63 (value -> FLOAT_VALUE .)
+    RPAREN          reduce using rule 63 (value -> FLOAT_VALUE .)
+    OR              reduce using rule 63 (value -> FLOAT_VALUE .)
+    AND             reduce using rule 63 (value -> FLOAT_VALUE .)
+    COMMA           reduce using rule 63 (value -> FLOAT_VALUE .)
+    END             reduce using rule 63 (value -> FLOAT_VALUE .)
+
+
+state 31
+
+    (64) value -> INTEGRAL_VALUE .
+    DIVISION        reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    MULTIPLICATION  reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    RSBRACKET       reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    MINUS           reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    PLUS            reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    COMPARATOR      reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    RPAREN          reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    OR              reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    AND             reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    COMMA           reduce using rule 64 (value -> INTEGRAL_VALUE .)
+    END             reduce using rule 64 (value -> INTEGRAL_VALUE .)
+
+
+state 32
+
+    (7) function -> ID LPAREN formal_params RPAREN COLON . return_type scope
+    (58) return_type -> . ABYSS_TYPE
+    (59) return_type -> . type
+    (52) type -> . BOOL_TYPE
+    (53) type -> . STRING_TYPE
+    (54) type -> . CHAR_TYPE
+    (55) type -> . FLOAT_TYPE
+    (56) type -> . UNSIGNED_TYPE
+    (57) type -> . SIGNED_TYPE
+    ABYSS_TYPE      shift and go to state 46
+    BOOL_TYPE       shift and go to state 14
+    STRING_TYPE     shift and go to state 15
+    CHAR_TYPE       shift and go to state 16
+    FLOAT_TYPE      shift and go to state 17
+    UNSIGNED_TYPE   shift and go to state 18
+    SIGNED_TYPE     shift and go to state 19
+
+    return_type                    shift and go to state 45
+    type                           shift and go to state 47
+
+state 33
+
+    (9) formal_params -> var_name type multi_formal_params .
+    RPAREN          reduce using rule 9 (formal_params -> var_name type multi_formal_params .)
+
+
+state 34
+
+    (11) multi_formal_params -> COMMA . var_name type multi_formal_params
+    (2) var_name -> . array_name
+    (3) var_name -> . ID
+    (4) array_name -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    ID              shift and go to state 7
+
+    var_name                       shift and go to state 48
+    array_name                     shift and go to state 10
+
+state 35
+
+    (12) function_call -> ID LPAREN . actual_params RPAREN
+    (13) actual_params -> .
+    (14) actual_params -> . expression multi_actual_params
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    RPAREN          reduce using rule 13 (actual_params -> .)
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    actual_params                  shift and go to state 49
+    expression                     shift and go to state 50
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 36
+
+    (4) array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .
+    BOOL_TYPE       reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    STRING_TYPE     reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    CHAR_TYPE       reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    FLOAT_TYPE      reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    UNSIGNED_TYPE   reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    SIGNED_TYPE     reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+
+
+state 37
+
+    (43) arithmetic_layer -> arithmetic_layer MINUS . term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    term                           shift and go to state 51
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 38
+
+    (44) arithmetic_layer -> arithmetic_layer PLUS . term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    term                           shift and go to state 52
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 39
+
+    (46) term -> term DIVISION . factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    factor                         shift and go to state 53
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 40
+
+    (47) term -> term MULTIPLICATION . factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    factor                         shift and go to state 54
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 41
 
     (50) factor -> LPAREN expression . RPAREN
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    RPAREN          shift and go to state 77
-    OR              shift and go to state 63
-    AND             shift and go to state 64
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    RPAREN          shift and go to state 55
+    OR              shift and go to state 56
+    AND             shift and go to state 57
 
 
-state 61
+state 42
 
+    (36) expression -> comparison_layer .
+    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
+    RPAREN          reduce using rule 36 (expression -> comparison_layer .)
+    OR              reduce using rule 36 (expression -> comparison_layer .)
+    AND             reduce using rule 36 (expression -> comparison_layer .)
+    COMMA           reduce using rule 36 (expression -> comparison_layer .)
+    END             reduce using rule 36 (expression -> comparison_layer .)
+    COMPARATOR      shift and go to state 58
+
+
+state 43
+
+    (39) expression -> ID . LSBRACKET arithmetic_layer RSBRACKET
     (48) factor -> ID .
     (12) function_call -> ID . LPAREN actual_params RPAREN
+    LSBRACKET       shift and go to state 59
     DIVISION        reduce using rule 48 (factor -> ID .)
     MULTIPLICATION  reduce using rule 48 (factor -> ID .)
     MINUS           reduce using rule 48 (factor -> ID .)
@@ -1125,36 +822,171 @@ state 61
     RPAREN          reduce using rule 48 (factor -> ID .)
     OR              reduce using rule 48 (factor -> ID .)
     AND             reduce using rule 48 (factor -> ID .)
-    END             reduce using rule 48 (factor -> ID .)
     COMMA           reduce using rule 48 (factor -> ID .)
-    RSBRACKET       reduce using rule 48 (factor -> ID .)
-    LPAREN          shift and go to state 68
+    END             reduce using rule 48 (factor -> ID .)
+    LPAREN          shift and go to state 35
 
 
-state 62
+state 44
 
-    (36) expression_statement -> expression END .
-    END             reduce using rule 36 (expression_statement -> expression END .)
-    IF              reduce using rule 36 (expression_statement -> expression END .)
-    WHILE           reduce using rule 36 (expression_statement -> expression END .)
-    LBRACE          reduce using rule 36 (expression_statement -> expression END .)
-    ID              reduce using rule 36 (expression_statement -> expression END .)
-    BOOL_TYPE       reduce using rule 36 (expression_statement -> expression END .)
-    CHAR_TYPE       reduce using rule 36 (expression_statement -> expression END .)
-    FLOAT_TYPE      reduce using rule 36 (expression_statement -> expression END .)
-    UNSIGNED_TYPE   reduce using rule 36 (expression_statement -> expression END .)
-    SIGNED_TYPE     reduce using rule 36 (expression_statement -> expression END .)
-    LPAREN          reduce using rule 36 (expression_statement -> expression END .)
-    CHAR_VALUE      reduce using rule 36 (expression_statement -> expression END .)
-    BOOL_VALUE      reduce using rule 36 (expression_statement -> expression END .)
-    FLOAT_VALUE     reduce using rule 36 (expression_statement -> expression END .)
-    INTEGRAL_VALUE  reduce using rule 36 (expression_statement -> expression END .)
-    RBRACE          reduce using rule 36 (expression_statement -> expression END .)
+    (40) comparison_layer -> arithmetic_layer .
+    (43) arithmetic_layer -> arithmetic_layer . MINUS term
+    (44) arithmetic_layer -> arithmetic_layer . PLUS term
+    COMPARATOR      reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    RPAREN          reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    OR              reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    AND             reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    COMMA           reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    END             reduce using rule 40 (comparison_layer -> arithmetic_layer .)
+    MINUS           shift and go to state 37
+    PLUS            shift and go to state 38
 
 
-state 63
+state 45
 
-    (38) expression -> expression OR . comparison_layer
+    (7) function -> ID LPAREN formal_params RPAREN COLON return_type . scope
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    LBRACE          shift and go to state 61
+
+    scope                          shift and go to state 60
+
+state 46
+
+    (58) return_type -> ABYSS_TYPE .
+    LBRACE          reduce using rule 58 (return_type -> ABYSS_TYPE .)
+
+
+state 47
+
+    (59) return_type -> type .
+    LBRACE          reduce using rule 59 (return_type -> type .)
+
+
+state 48
+
+    (11) multi_formal_params -> COMMA var_name . type multi_formal_params
+    (52) type -> . BOOL_TYPE
+    (53) type -> . STRING_TYPE
+    (54) type -> . CHAR_TYPE
+    (55) type -> . FLOAT_TYPE
+    (56) type -> . UNSIGNED_TYPE
+    (57) type -> . SIGNED_TYPE
+    BOOL_TYPE       shift and go to state 14
+    STRING_TYPE     shift and go to state 15
+    CHAR_TYPE       shift and go to state 16
+    FLOAT_TYPE      shift and go to state 17
+    UNSIGNED_TYPE   shift and go to state 18
+    SIGNED_TYPE     shift and go to state 19
+
+    type                           shift and go to state 62
+
+state 49
+
+    (12) function_call -> ID LPAREN actual_params . RPAREN
+    RPAREN          shift and go to state 63
+
+
+state 50
+
+    (14) actual_params -> expression . multi_actual_params
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    (15) multi_actual_params -> .
+    (16) multi_actual_params -> . COMMA expression multi_actual_params
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+    RPAREN          reduce using rule 15 (multi_actual_params -> .)
+    COMMA           shift and go to state 65
+
+    multi_actual_params            shift and go to state 64
+
+state 51
+
+    (43) arithmetic_layer -> arithmetic_layer MINUS term .
+    (46) term -> term . DIVISION factor
+    (47) term -> term . MULTIPLICATION factor
+    RSBRACKET       reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    MINUS           reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    PLUS            reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    COMPARATOR      reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    RPAREN          reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    OR              reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    AND             reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    COMMA           reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    END             reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
+    DIVISION        shift and go to state 39
+    MULTIPLICATION  shift and go to state 40
+
+
+state 52
+
+    (44) arithmetic_layer -> arithmetic_layer PLUS term .
+    (46) term -> term . DIVISION factor
+    (47) term -> term . MULTIPLICATION factor
+    RSBRACKET       reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    MINUS           reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    PLUS            reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    COMPARATOR      reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    RPAREN          reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    OR              reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    AND             reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    COMMA           reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    END             reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
+    DIVISION        shift and go to state 39
+    MULTIPLICATION  shift and go to state 40
+
+
+state 53
+
+    (46) term -> term DIVISION factor .
+    DIVISION        reduce using rule 46 (term -> term DIVISION factor .)
+    MULTIPLICATION  reduce using rule 46 (term -> term DIVISION factor .)
+    RSBRACKET       reduce using rule 46 (term -> term DIVISION factor .)
+    MINUS           reduce using rule 46 (term -> term DIVISION factor .)
+    PLUS            reduce using rule 46 (term -> term DIVISION factor .)
+    COMPARATOR      reduce using rule 46 (term -> term DIVISION factor .)
+    RPAREN          reduce using rule 46 (term -> term DIVISION factor .)
+    OR              reduce using rule 46 (term -> term DIVISION factor .)
+    AND             reduce using rule 46 (term -> term DIVISION factor .)
+    COMMA           reduce using rule 46 (term -> term DIVISION factor .)
+    END             reduce using rule 46 (term -> term DIVISION factor .)
+
+
+state 54
+
+    (47) term -> term MULTIPLICATION factor .
+    DIVISION        reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    MULTIPLICATION  reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    RSBRACKET       reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    MINUS           reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    PLUS            reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    COMPARATOR      reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    RPAREN          reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    OR              reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    AND             reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    COMMA           reduce using rule 47 (term -> term MULTIPLICATION factor .)
+    END             reduce using rule 47 (term -> term MULTIPLICATION factor .)
+
+
+state 55
+
+    (50) factor -> LPAREN expression RPAREN .
+    DIVISION        reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    MULTIPLICATION  reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    RSBRACKET       reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    MINUS           reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    PLUS            reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    COMPARATOR      reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    RPAREN          reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    OR              reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    AND             reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    COMMA           reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+    END             reduce using rule 50 (factor -> LPAREN expression RPAREN .)
+
+
+state 56
+
+    (37) expression -> expression OR . comparison_layer
     (40) comparison_layer -> . arithmetic_layer
     (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
     (42) arithmetic_layer -> . term
@@ -1167,28 +999,30 @@ state 63
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    comparison_layer               shift and go to state 78
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    comparison_layer               shift and go to state 66
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 64
+state 57
 
-    (39) expression -> expression AND . comparison_layer
+    (38) expression -> expression AND . comparison_layer
     (40) comparison_layer -> . arithmetic_layer
     (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
     (42) arithmetic_layer -> . term
@@ -1201,228 +1035,28 @@ state 64
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    comparison_layer               shift and go to state 79
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    comparison_layer               shift and go to state 67
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 65
-
-    (64) while_statement -> WHILE LPAREN . expression RPAREN scope
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    expression                     shift and go to state 80
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 66
-
-    (35) array_get -> ID LSBRACKET . term RSBRACKET
-    (34) array_assign -> ID LSBRACKET . term RSBRACKET ASSIGN expression END
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    term                           shift and go to state 81
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 67
-
-    (32) assignment -> ID ASSIGN . expression END
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    expression                     shift and go to state 82
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 68
-
-    (12) function_call -> ID LPAREN . actual_params RPAREN
-    (13) actual_params -> .
-    (14) actual_params -> . expression multi_actual_params
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
-    (42) arithmetic_layer -> . term
-    (43) arithmetic_layer -> . arithmetic_layer MINUS term
-    (44) arithmetic_layer -> . arithmetic_layer PLUS term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    RPAREN          reduce using rule 13 (actual_params -> .)
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    actual_params                  shift and go to state 83
-    expression                     shift and go to state 84
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 69
-
-    (46) term -> term DIVISION . factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    factor                         shift and go to state 85
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 70
-
-    (47) term -> term MULTIPLICATION . factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    factor                         shift and go to state 86
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 71
-
-    (33) array_create -> type ID . LSBRACKET term RSBRACKET END
-    (31) declaration_init -> type ID . ASSIGN expression END
-    (30) declaration -> type ID . END
-    LSBRACKET       shift and go to state 87
-    ASSIGN          shift and go to state 89
-    END             shift and go to state 88
-
-
-state 72
+state 58
 
     (41) comparison_layer -> comparison_layer COMPARATOR . arithmetic_layer
     (42) arithmetic_layer -> . term
@@ -1435,290 +1069,29 @@ state 72
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    arithmetic_layer               shift and go to state 90
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    arithmetic_layer               shift and go to state 68
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 73
+state 59
 
-    (43) arithmetic_layer -> arithmetic_layer MINUS . term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    term                           shift and go to state 91
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 74
-
-    (44) arithmetic_layer -> arithmetic_layer PLUS . term
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    term                           shift and go to state 92
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 75
-
-    (61) scope -> LBRACE new_scope statements pop_scope RBRACE .
-    ID              reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    $end            reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    END             reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    IF              reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    WHILE           reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    LBRACE          reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    BOOL_TYPE       reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    CHAR_TYPE       reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    FLOAT_TYPE      reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    UNSIGNED_TYPE   reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    SIGNED_TYPE     reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    LPAREN          reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    CHAR_VALUE      reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    BOOL_VALUE      reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    FLOAT_VALUE     reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    INTEGRAL_VALUE  reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    RBRACE          reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-    ELSE            reduce using rule 61 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
-
-
-state 76
-
-    (65) if_statement -> IF LPAREN expression . RPAREN scope else_statement
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    RPAREN          shift and go to state 93
-    OR              shift and go to state 63
-    AND             shift and go to state 64
-
-
-state 77
-
-    (50) factor -> LPAREN expression RPAREN .
-    DIVISION        reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    MULTIPLICATION  reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    MINUS           reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    PLUS            reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    COMPARATOR      reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    END             reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    OR              reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    AND             reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    RPAREN          reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    COMMA           reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-    RSBRACKET       reduce using rule 50 (factor -> LPAREN expression RPAREN .)
-
-
-state 78
-
-    (38) expression -> expression OR comparison_layer .
-    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
-    END             reduce using rule 38 (expression -> expression OR comparison_layer .)
-    OR              reduce using rule 38 (expression -> expression OR comparison_layer .)
-    AND             reduce using rule 38 (expression -> expression OR comparison_layer .)
-    RPAREN          reduce using rule 38 (expression -> expression OR comparison_layer .)
-    COMMA           reduce using rule 38 (expression -> expression OR comparison_layer .)
-    COMPARATOR      shift and go to state 72
-
-
-state 79
-
-    (39) expression -> expression AND comparison_layer .
-    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
-    END             reduce using rule 39 (expression -> expression AND comparison_layer .)
-    OR              reduce using rule 39 (expression -> expression AND comparison_layer .)
-    AND             reduce using rule 39 (expression -> expression AND comparison_layer .)
-    RPAREN          reduce using rule 39 (expression -> expression AND comparison_layer .)
-    COMMA           reduce using rule 39 (expression -> expression AND comparison_layer .)
-    COMPARATOR      shift and go to state 72
-
-
-state 80
-
-    (64) while_statement -> WHILE LPAREN expression . RPAREN scope
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    RPAREN          shift and go to state 94
-    OR              shift and go to state 63
-    AND             shift and go to state 64
-
-
-state 81
-
-    (35) array_get -> ID LSBRACKET term . RSBRACKET
-    (34) array_assign -> ID LSBRACKET term . RSBRACKET ASSIGN expression END
-    (46) term -> term . DIVISION factor
-    (47) term -> term . MULTIPLICATION factor
-    RSBRACKET       shift and go to state 95
-    DIVISION        shift and go to state 69
-    MULTIPLICATION  shift and go to state 70
-
-
-state 82
-
-    (32) assignment -> ID ASSIGN expression . END
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    END             shift and go to state 96
-    OR              shift and go to state 63
-    AND             shift and go to state 64
-
-
-state 83
-
-    (12) function_call -> ID LPAREN actual_params . RPAREN
-    RPAREN          shift and go to state 97
-
-
-state 84
-
-    (14) actual_params -> expression . multi_actual_params
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    (15) multi_actual_params -> .
-    (16) multi_actual_params -> . COMMA expression multi_actual_params
-    OR              shift and go to state 63
-    AND             shift and go to state 64
-    RPAREN          reduce using rule 15 (multi_actual_params -> .)
-    COMMA           shift and go to state 99
-
-    multi_actual_params            shift and go to state 98
-
-state 85
-
-    (46) term -> term DIVISION factor .
-    DIVISION        reduce using rule 46 (term -> term DIVISION factor .)
-    MULTIPLICATION  reduce using rule 46 (term -> term DIVISION factor .)
-    MINUS           reduce using rule 46 (term -> term DIVISION factor .)
-    PLUS            reduce using rule 46 (term -> term DIVISION factor .)
-    COMPARATOR      reduce using rule 46 (term -> term DIVISION factor .)
-    END             reduce using rule 46 (term -> term DIVISION factor .)
-    OR              reduce using rule 46 (term -> term DIVISION factor .)
-    AND             reduce using rule 46 (term -> term DIVISION factor .)
-    RPAREN          reduce using rule 46 (term -> term DIVISION factor .)
-    COMMA           reduce using rule 46 (term -> term DIVISION factor .)
-    RSBRACKET       reduce using rule 46 (term -> term DIVISION factor .)
-
-
-state 86
-
-    (47) term -> term MULTIPLICATION factor .
-    DIVISION        reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    MULTIPLICATION  reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    MINUS           reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    PLUS            reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    COMPARATOR      reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    END             reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    OR              reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    AND             reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    RPAREN          reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    COMMA           reduce using rule 47 (term -> term MULTIPLICATION factor .)
-    RSBRACKET       reduce using rule 47 (term -> term MULTIPLICATION factor .)
-
-
-state 87
-
-    (33) array_create -> type ID LSBRACKET . term RSBRACKET END
-    (45) term -> . factor
-    (46) term -> . term DIVISION factor
-    (47) term -> . term MULTIPLICATION factor
-    (48) factor -> . ID
-    (49) factor -> . value
-    (50) factor -> . LPAREN expression RPAREN
-    (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
-    (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
-
-    term                           shift and go to state 100
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
-
-state 88
-
-    (30) declaration -> type ID END .
-    END             reduce using rule 30 (declaration -> type ID END .)
-    IF              reduce using rule 30 (declaration -> type ID END .)
-    WHILE           reduce using rule 30 (declaration -> type ID END .)
-    LBRACE          reduce using rule 30 (declaration -> type ID END .)
-    ID              reduce using rule 30 (declaration -> type ID END .)
-    BOOL_TYPE       reduce using rule 30 (declaration -> type ID END .)
-    CHAR_TYPE       reduce using rule 30 (declaration -> type ID END .)
-    FLOAT_TYPE      reduce using rule 30 (declaration -> type ID END .)
-    UNSIGNED_TYPE   reduce using rule 30 (declaration -> type ID END .)
-    SIGNED_TYPE     reduce using rule 30 (declaration -> type ID END .)
-    LPAREN          reduce using rule 30 (declaration -> type ID END .)
-    CHAR_VALUE      reduce using rule 30 (declaration -> type ID END .)
-    BOOL_VALUE      reduce using rule 30 (declaration -> type ID END .)
-    FLOAT_VALUE     reduce using rule 30 (declaration -> type ID END .)
-    INTEGRAL_VALUE  reduce using rule 30 (declaration -> type ID END .)
-    RBRACE          reduce using rule 30 (declaration -> type ID END .)
-
-
-state 89
-
-    (31) declaration_init -> type ID ASSIGN . expression END
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
-    (40) comparison_layer -> . arithmetic_layer
-    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (39) expression -> ID LSBRACKET . arithmetic_layer RSBRACKET
     (42) arithmetic_layer -> . term
     (43) arithmetic_layer -> . arithmetic_layer MINUS term
     (44) arithmetic_layer -> . arithmetic_layer PLUS term
@@ -1729,163 +1102,91 @@ state 89
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    expression                     shift and go to state 101
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    arithmetic_layer               shift and go to state 69
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 90
+state 60
 
-    (41) comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .
-    (43) arithmetic_layer -> arithmetic_layer . MINUS term
-    (44) arithmetic_layer -> arithmetic_layer . PLUS term
-    COMPARATOR      reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    END             reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    OR              reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    AND             reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    RPAREN          reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    COMMA           reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
-    MINUS           shift and go to state 73
-    PLUS            shift and go to state 74
+    (7) function -> ID LPAREN formal_params RPAREN COLON return_type scope .
+    ID              reduce using rule 7 (function -> ID LPAREN formal_params RPAREN COLON return_type scope .)
+    $end            reduce using rule 7 (function -> ID LPAREN formal_params RPAREN COLON return_type scope .)
 
 
-state 91
+state 61
 
-    (43) arithmetic_layer -> arithmetic_layer MINUS term .
-    (46) term -> term . DIVISION factor
-    (47) term -> term . MULTIPLICATION factor
-    MINUS           reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    PLUS            reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    COMPARATOR      reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    END             reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    OR              reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    AND             reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    RPAREN          reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    COMMA           reduce using rule 43 (arithmetic_layer -> arithmetic_layer MINUS term .)
-    DIVISION        shift and go to state 69
-    MULTIPLICATION  shift and go to state 70
+    (65) scope -> LBRACE . new_scope statements pop_scope RBRACE
+    (66) new_scope -> .
+    END             reduce using rule 66 (new_scope -> .)
+    IF              reduce using rule 66 (new_scope -> .)
+    WHILE           reduce using rule 66 (new_scope -> .)
+    LBRACE          reduce using rule 66 (new_scope -> .)
+    ID              reduce using rule 66 (new_scope -> .)
+    LPAREN          reduce using rule 66 (new_scope -> .)
+    STRING_VALUE    reduce using rule 66 (new_scope -> .)
+    CHAR_VALUE      reduce using rule 66 (new_scope -> .)
+    BOOL_VALUE      reduce using rule 66 (new_scope -> .)
+    FLOAT_VALUE     reduce using rule 66 (new_scope -> .)
+    INTEGRAL_VALUE  reduce using rule 66 (new_scope -> .)
+    RBRACE          reduce using rule 66 (new_scope -> .)
 
+    new_scope                      shift and go to state 70
 
-state 92
+state 62
 
-    (44) arithmetic_layer -> arithmetic_layer PLUS term .
-    (46) term -> term . DIVISION factor
-    (47) term -> term . MULTIPLICATION factor
-    MINUS           reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    PLUS            reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    COMPARATOR      reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    END             reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    OR              reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    AND             reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    RPAREN          reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    COMMA           reduce using rule 44 (arithmetic_layer -> arithmetic_layer PLUS term .)
-    DIVISION        shift and go to state 69
-    MULTIPLICATION  shift and go to state 70
+    (11) multi_formal_params -> COMMA var_name type . multi_formal_params
+    (10) multi_formal_params -> .
+    (11) multi_formal_params -> . COMMA var_name type multi_formal_params
+    RPAREN          reduce using rule 10 (multi_formal_params -> .)
+    COMMA           shift and go to state 34
 
+    multi_formal_params            shift and go to state 71
 
-state 93
-
-    (65) if_statement -> IF LPAREN expression RPAREN . scope else_statement
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    LBRACE          shift and go to state 26
-
-    scope                          shift and go to state 102
-
-state 94
-
-    (64) while_statement -> WHILE LPAREN expression RPAREN . scope
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    LBRACE          shift and go to state 26
-
-    scope                          shift and go to state 103
-
-state 95
-
-    (35) array_get -> ID LSBRACKET term RSBRACKET .
-    (34) array_assign -> ID LSBRACKET term RSBRACKET . ASSIGN expression END
-    END             reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    IF              reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    WHILE           reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    LBRACE          reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    ID              reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    BOOL_TYPE       reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    CHAR_TYPE       reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    FLOAT_TYPE      reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    UNSIGNED_TYPE   reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    SIGNED_TYPE     reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    LPAREN          reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    CHAR_VALUE      reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    BOOL_VALUE      reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    FLOAT_VALUE     reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    INTEGRAL_VALUE  reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    RBRACE          reduce using rule 35 (array_get -> ID LSBRACKET term RSBRACKET .)
-    ASSIGN          shift and go to state 104
-
-
-state 96
-
-    (32) assignment -> ID ASSIGN expression END .
-    END             reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    IF              reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    WHILE           reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    LBRACE          reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    ID              reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    BOOL_TYPE       reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    CHAR_TYPE       reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    FLOAT_TYPE      reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    UNSIGNED_TYPE   reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    SIGNED_TYPE     reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    LPAREN          reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    CHAR_VALUE      reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    BOOL_VALUE      reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    FLOAT_VALUE     reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    INTEGRAL_VALUE  reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-    RBRACE          reduce using rule 32 (assignment -> ID ASSIGN expression END .)
-
-
-state 97
+state 63
 
     (12) function_call -> ID LPAREN actual_params RPAREN .
     DIVISION        reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     MULTIPLICATION  reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
+    RSBRACKET       reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     MINUS           reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     PLUS            reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     COMPARATOR      reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
-    END             reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
+    RPAREN          reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     OR              reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     AND             reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
-    RPAREN          reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
     COMMA           reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
-    RSBRACKET       reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
+    END             reduce using rule 12 (function_call -> ID LPAREN actual_params RPAREN .)
 
 
-state 98
+state 64
 
     (14) actual_params -> expression multi_actual_params .
     RPAREN          reduce using rule 14 (actual_params -> expression multi_actual_params .)
 
 
-state 99
+state 65
 
     (16) multi_actual_params -> COMMA . expression multi_actual_params
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
     (40) comparison_layer -> . arithmetic_layer
     (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
     (42) arithmetic_layer -> . term
@@ -1898,101 +1199,106 @@ state 99
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    expression                     shift and go to state 105
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    term                           shift and go to state 46
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    expression                     shift and go to state 72
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 100
+state 66
 
-    (33) array_create -> type ID LSBRACKET term . RSBRACKET END
-    (46) term -> term . DIVISION factor
-    (47) term -> term . MULTIPLICATION factor
-    RSBRACKET       shift and go to state 106
-    DIVISION        shift and go to state 69
-    MULTIPLICATION  shift and go to state 70
-
-
-state 101
-
-    (31) declaration_init -> type ID ASSIGN expression . END
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    END             shift and go to state 107
-    OR              shift and go to state 63
-    AND             shift and go to state 64
+    (37) expression -> expression OR comparison_layer .
+    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
+    RPAREN          reduce using rule 37 (expression -> expression OR comparison_layer .)
+    OR              reduce using rule 37 (expression -> expression OR comparison_layer .)
+    AND             reduce using rule 37 (expression -> expression OR comparison_layer .)
+    COMMA           reduce using rule 37 (expression -> expression OR comparison_layer .)
+    END             reduce using rule 37 (expression -> expression OR comparison_layer .)
+    COMPARATOR      shift and go to state 58
 
 
-state 102
+state 67
 
-    (65) if_statement -> IF LPAREN expression RPAREN scope . else_statement
-    (66) else_statement -> .
-    (67) else_statement -> . ELSE if_statement
-    (68) else_statement -> . ELSE scope
-    END             reduce using rule 66 (else_statement -> .)
-    IF              reduce using rule 66 (else_statement -> .)
-    WHILE           reduce using rule 66 (else_statement -> .)
-    LBRACE          reduce using rule 66 (else_statement -> .)
-    ID              reduce using rule 66 (else_statement -> .)
-    BOOL_TYPE       reduce using rule 66 (else_statement -> .)
-    CHAR_TYPE       reduce using rule 66 (else_statement -> .)
-    FLOAT_TYPE      reduce using rule 66 (else_statement -> .)
-    UNSIGNED_TYPE   reduce using rule 66 (else_statement -> .)
-    SIGNED_TYPE     reduce using rule 66 (else_statement -> .)
-    LPAREN          reduce using rule 66 (else_statement -> .)
-    CHAR_VALUE      reduce using rule 66 (else_statement -> .)
-    BOOL_VALUE      reduce using rule 66 (else_statement -> .)
-    FLOAT_VALUE     reduce using rule 66 (else_statement -> .)
-    INTEGRAL_VALUE  reduce using rule 66 (else_statement -> .)
-    RBRACE          reduce using rule 66 (else_statement -> .)
-    ELSE            shift and go to state 109
-
-    else_statement                 shift and go to state 108
-
-state 103
-
-    (64) while_statement -> WHILE LPAREN expression RPAREN scope .
-    END             reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    IF              reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    WHILE           reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    LBRACE          reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    ID              reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    BOOL_TYPE       reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    CHAR_TYPE       reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    FLOAT_TYPE      reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    UNSIGNED_TYPE   reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    SIGNED_TYPE     reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    LPAREN          reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    CHAR_VALUE      reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    BOOL_VALUE      reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    FLOAT_VALUE     reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    INTEGRAL_VALUE  reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
-    RBRACE          reduce using rule 64 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    (38) expression -> expression AND comparison_layer .
+    (41) comparison_layer -> comparison_layer . COMPARATOR arithmetic_layer
+    RPAREN          reduce using rule 38 (expression -> expression AND comparison_layer .)
+    OR              reduce using rule 38 (expression -> expression AND comparison_layer .)
+    AND             reduce using rule 38 (expression -> expression AND comparison_layer .)
+    COMMA           reduce using rule 38 (expression -> expression AND comparison_layer .)
+    END             reduce using rule 38 (expression -> expression AND comparison_layer .)
+    COMPARATOR      shift and go to state 58
 
 
-state 104
+state 68
 
-    (34) array_assign -> ID LSBRACKET term RSBRACKET ASSIGN . expression END
-    (37) expression -> . comparison_layer
-    (38) expression -> . expression OR comparison_layer
-    (39) expression -> . expression AND comparison_layer
+    (41) comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .
+    (43) arithmetic_layer -> arithmetic_layer . MINUS term
+    (44) arithmetic_layer -> arithmetic_layer . PLUS term
+    COMPARATOR      reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    RPAREN          reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    OR              reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    AND             reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    COMMA           reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    END             reduce using rule 41 (comparison_layer -> comparison_layer COMPARATOR arithmetic_layer .)
+    MINUS           shift and go to state 37
+    PLUS            shift and go to state 38
+
+
+state 69
+
+    (39) expression -> ID LSBRACKET arithmetic_layer . RSBRACKET
+    (43) arithmetic_layer -> arithmetic_layer . MINUS term
+    (44) arithmetic_layer -> arithmetic_layer . PLUS term
+    RSBRACKET       shift and go to state 73
+    MINUS           shift and go to state 37
+    PLUS            shift and go to state 38
+
+
+state 70
+
+    (65) scope -> LBRACE new_scope . statements pop_scope RBRACE
+    (17) statements -> .
+    (18) statements -> . statement statements
+    (19) statement -> . END
+    (20) statement -> . if_statement
+    (21) statement -> . while_statement
+    (22) statement -> . scope
+    (23) statement -> . assignment END
+    (24) statement -> . declaration_init END
+    (25) statement -> . declaration END
+    (26) statement -> . expression END
+    (28) if_statement -> . IF LPAREN expression RPAREN scope else_statement
+    (27) while_statement -> . WHILE LPAREN expression RPAREN scope
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    (34) assignment -> . ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
+    (35) assignment -> . ID ASSIGN expression
+    (33) declaration_init -> . var_name COLON type ASSIGN expression
+    (32) declaration -> . var_name COLON type
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (2) var_name -> . array_name
+    (3) var_name -> . ID
     (40) comparison_layer -> . arithmetic_layer
     (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (4) array_name -> . ID LSBRACKET arithmetic_layer RSBRACKET
     (42) arithmetic_layer -> . term
     (43) arithmetic_layer -> . arithmetic_layer MINUS term
     (44) arithmetic_layer -> . arithmetic_layer PLUS term
@@ -2003,195 +1309,854 @@ state 104
     (49) factor -> . value
     (50) factor -> . LPAREN expression RPAREN
     (51) factor -> . function_call
-    (57) value -> . CHAR_VALUE
-    (58) value -> . BOOL_VALUE
-    (59) value -> . FLOAT_VALUE
-    (60) value -> . INTEGRAL_VALUE
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
     (12) function_call -> . ID LPAREN actual_params RPAREN
-    ID              shift and go to state 61
-    LPAREN          shift and go to state 42
-    CHAR_VALUE      shift and go to state 53
-    BOOL_VALUE      shift and go to state 54
-    FLOAT_VALUE     shift and go to state 55
-    INTEGRAL_VALUE  shift and go to state 56
+    RBRACE          reduce using rule 17 (statements -> .)
+    END             shift and go to state 76
+    IF              shift and go to state 84
+    WHILE           shift and go to state 85
+    LBRACE          shift and go to state 61
+    ID              shift and go to state 86
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
-    term                           shift and go to state 46
-    expression                     shift and go to state 110
-    comparison_layer               shift and go to state 48
-    arithmetic_layer               shift and go to state 49
-    factor                         shift and go to state 50
-    value                          shift and go to state 51
-    function_call                  shift and go to state 52
+    statements                     shift and go to state 74
+    statement                      shift and go to state 75
+    if_statement                   shift and go to state 77
+    while_statement                shift and go to state 78
+    scope                          shift and go to state 79
+    assignment                     shift and go to state 80
+    declaration_init               shift and go to state 81
+    declaration                    shift and go to state 82
+    expression                     shift and go to state 83
+    arithmetic_layer               shift and go to state 44
+    var_name                       shift and go to state 87
+    comparison_layer               shift and go to state 42
+    array_name                     shift and go to state 10
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
-state 105
+state 71
+
+    (11) multi_formal_params -> COMMA var_name type multi_formal_params .
+    RPAREN          reduce using rule 11 (multi_formal_params -> COMMA var_name type multi_formal_params .)
+
+
+state 72
 
     (16) multi_actual_params -> COMMA expression . multi_actual_params
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
     (15) multi_actual_params -> .
     (16) multi_actual_params -> . COMMA expression multi_actual_params
-    OR              shift and go to state 63
-    AND             shift and go to state 64
+    OR              shift and go to state 56
+    AND             shift and go to state 57
     RPAREN          reduce using rule 15 (multi_actual_params -> .)
-    COMMA           shift and go to state 99
+    COMMA           shift and go to state 65
 
-    multi_actual_params            shift and go to state 111
+    multi_actual_params            shift and go to state 88
 
-state 106
+state 73
 
-    (33) array_create -> type ID LSBRACKET term RSBRACKET . END
-    END             shift and go to state 112
-
-
-state 107
-
-    (31) declaration_init -> type ID ASSIGN expression END .
-    END             reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    IF              reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    WHILE           reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    LBRACE          reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    ID              reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    BOOL_TYPE       reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    CHAR_TYPE       reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    FLOAT_TYPE      reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    UNSIGNED_TYPE   reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    SIGNED_TYPE     reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    LPAREN          reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    CHAR_VALUE      reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    BOOL_VALUE      reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    FLOAT_VALUE     reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    INTEGRAL_VALUE  reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
-    RBRACE          reduce using rule 31 (declaration_init -> type ID ASSIGN expression END .)
+    (39) expression -> ID LSBRACKET arithmetic_layer RSBRACKET .
+    RPAREN          reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    OR              reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    AND             reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    COMMA           reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    END             reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
 
 
-state 108
+state 74
 
-    (65) if_statement -> IF LPAREN expression RPAREN scope else_statement .
-    END             reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    IF              reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    WHILE           reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    LBRACE          reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    ID              reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    BOOL_TYPE       reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    CHAR_TYPE       reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    FLOAT_TYPE      reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    UNSIGNED_TYPE   reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    SIGNED_TYPE     reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    LPAREN          reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    CHAR_VALUE      reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    BOOL_VALUE      reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    FLOAT_VALUE     reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    INTEGRAL_VALUE  reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
-    RBRACE          reduce using rule 65 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    (65) scope -> LBRACE new_scope statements . pop_scope RBRACE
+    (67) pop_scope -> .
+    RBRACE          reduce using rule 67 (pop_scope -> .)
+
+    pop_scope                      shift and go to state 89
+
+state 75
+
+    (18) statements -> statement . statements
+    (17) statements -> .
+    (18) statements -> . statement statements
+    (19) statement -> . END
+    (20) statement -> . if_statement
+    (21) statement -> . while_statement
+    (22) statement -> . scope
+    (23) statement -> . assignment END
+    (24) statement -> . declaration_init END
+    (25) statement -> . declaration END
+    (26) statement -> . expression END
+    (28) if_statement -> . IF LPAREN expression RPAREN scope else_statement
+    (27) while_statement -> . WHILE LPAREN expression RPAREN scope
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    (34) assignment -> . ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
+    (35) assignment -> . ID ASSIGN expression
+    (33) declaration_init -> . var_name COLON type ASSIGN expression
+    (32) declaration -> . var_name COLON type
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (2) var_name -> . array_name
+    (3) var_name -> . ID
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (4) array_name -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    RBRACE          reduce using rule 17 (statements -> .)
+    END             shift and go to state 76
+    IF              shift and go to state 84
+    WHILE           shift and go to state 85
+    LBRACE          shift and go to state 61
+    ID              shift and go to state 86
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    statement                      shift and go to state 75
+    statements                     shift and go to state 90
+    if_statement                   shift and go to state 77
+    while_statement                shift and go to state 78
+    scope                          shift and go to state 79
+    assignment                     shift and go to state 80
+    declaration_init               shift and go to state 81
+    declaration                    shift and go to state 82
+    expression                     shift and go to state 83
+    arithmetic_layer               shift and go to state 44
+    var_name                       shift and go to state 87
+    comparison_layer               shift and go to state 42
+    array_name                     shift and go to state 10
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 76
+
+    (19) statement -> END .
+    END             reduce using rule 19 (statement -> END .)
+    IF              reduce using rule 19 (statement -> END .)
+    WHILE           reduce using rule 19 (statement -> END .)
+    LBRACE          reduce using rule 19 (statement -> END .)
+    ID              reduce using rule 19 (statement -> END .)
+    LPAREN          reduce using rule 19 (statement -> END .)
+    STRING_VALUE    reduce using rule 19 (statement -> END .)
+    CHAR_VALUE      reduce using rule 19 (statement -> END .)
+    BOOL_VALUE      reduce using rule 19 (statement -> END .)
+    FLOAT_VALUE     reduce using rule 19 (statement -> END .)
+    INTEGRAL_VALUE  reduce using rule 19 (statement -> END .)
+    RBRACE          reduce using rule 19 (statement -> END .)
 
 
-state 109
+state 77
 
-    (67) else_statement -> ELSE . if_statement
-    (68) else_statement -> ELSE . scope
-    (65) if_statement -> . IF LPAREN expression RPAREN scope else_statement
-    (61) scope -> . LBRACE new_scope statements pop_scope RBRACE
-    IF              shift and go to state 41
-    LBRACE          shift and go to state 26
-
-    if_statement                   shift and go to state 113
-    scope                          shift and go to state 114
-
-state 110
-
-    (34) array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression . END
-    (38) expression -> expression . OR comparison_layer
-    (39) expression -> expression . AND comparison_layer
-    END             shift and go to state 115
-    OR              shift and go to state 63
-    AND             shift and go to state 64
+    (20) statement -> if_statement .
+    END             reduce using rule 20 (statement -> if_statement .)
+    IF              reduce using rule 20 (statement -> if_statement .)
+    WHILE           reduce using rule 20 (statement -> if_statement .)
+    LBRACE          reduce using rule 20 (statement -> if_statement .)
+    ID              reduce using rule 20 (statement -> if_statement .)
+    LPAREN          reduce using rule 20 (statement -> if_statement .)
+    STRING_VALUE    reduce using rule 20 (statement -> if_statement .)
+    CHAR_VALUE      reduce using rule 20 (statement -> if_statement .)
+    BOOL_VALUE      reduce using rule 20 (statement -> if_statement .)
+    FLOAT_VALUE     reduce using rule 20 (statement -> if_statement .)
+    INTEGRAL_VALUE  reduce using rule 20 (statement -> if_statement .)
+    RBRACE          reduce using rule 20 (statement -> if_statement .)
 
 
-state 111
+state 78
+
+    (21) statement -> while_statement .
+    END             reduce using rule 21 (statement -> while_statement .)
+    IF              reduce using rule 21 (statement -> while_statement .)
+    WHILE           reduce using rule 21 (statement -> while_statement .)
+    LBRACE          reduce using rule 21 (statement -> while_statement .)
+    ID              reduce using rule 21 (statement -> while_statement .)
+    LPAREN          reduce using rule 21 (statement -> while_statement .)
+    STRING_VALUE    reduce using rule 21 (statement -> while_statement .)
+    CHAR_VALUE      reduce using rule 21 (statement -> while_statement .)
+    BOOL_VALUE      reduce using rule 21 (statement -> while_statement .)
+    FLOAT_VALUE     reduce using rule 21 (statement -> while_statement .)
+    INTEGRAL_VALUE  reduce using rule 21 (statement -> while_statement .)
+    RBRACE          reduce using rule 21 (statement -> while_statement .)
+
+
+state 79
+
+    (22) statement -> scope .
+    END             reduce using rule 22 (statement -> scope .)
+    IF              reduce using rule 22 (statement -> scope .)
+    WHILE           reduce using rule 22 (statement -> scope .)
+    LBRACE          reduce using rule 22 (statement -> scope .)
+    ID              reduce using rule 22 (statement -> scope .)
+    LPAREN          reduce using rule 22 (statement -> scope .)
+    STRING_VALUE    reduce using rule 22 (statement -> scope .)
+    CHAR_VALUE      reduce using rule 22 (statement -> scope .)
+    BOOL_VALUE      reduce using rule 22 (statement -> scope .)
+    FLOAT_VALUE     reduce using rule 22 (statement -> scope .)
+    INTEGRAL_VALUE  reduce using rule 22 (statement -> scope .)
+    RBRACE          reduce using rule 22 (statement -> scope .)
+
+
+state 80
+
+    (23) statement -> assignment . END
+    END             shift and go to state 91
+
+
+state 81
+
+    (24) statement -> declaration_init . END
+    END             shift and go to state 92
+
+
+state 82
+
+    (25) statement -> declaration . END
+    END             shift and go to state 93
+
+
+state 83
+
+    (26) statement -> expression . END
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    END             shift and go to state 94
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+
+
+state 84
+
+    (28) if_statement -> IF . LPAREN expression RPAREN scope else_statement
+    LPAREN          shift and go to state 95
+
+
+state 85
+
+    (27) while_statement -> WHILE . LPAREN expression RPAREN scope
+    LPAREN          shift and go to state 96
+
+
+state 86
+
+    (34) assignment -> ID . LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
+    (35) assignment -> ID . ASSIGN expression
+    (39) expression -> ID . LSBRACKET arithmetic_layer RSBRACKET
+    (3) var_name -> ID .
+    (4) array_name -> ID . LSBRACKET arithmetic_layer RSBRACKET
+    (48) factor -> ID .
+    (12) function_call -> ID . LPAREN actual_params RPAREN
+    LSBRACKET       shift and go to state 97
+    ASSIGN          shift and go to state 98
+    COLON           reduce using rule 3 (var_name -> ID .)
+    DIVISION        reduce using rule 48 (factor -> ID .)
+    MULTIPLICATION  reduce using rule 48 (factor -> ID .)
+    MINUS           reduce using rule 48 (factor -> ID .)
+    PLUS            reduce using rule 48 (factor -> ID .)
+    COMPARATOR      reduce using rule 48 (factor -> ID .)
+    END             reduce using rule 48 (factor -> ID .)
+    OR              reduce using rule 48 (factor -> ID .)
+    AND             reduce using rule 48 (factor -> ID .)
+    LPAREN          shift and go to state 35
+
+
+state 87
+
+    (33) declaration_init -> var_name . COLON type ASSIGN expression
+    (32) declaration -> var_name . COLON type
+    COLON           shift and go to state 99
+
+
+state 88
 
     (16) multi_actual_params -> COMMA expression multi_actual_params .
     RPAREN          reduce using rule 16 (multi_actual_params -> COMMA expression multi_actual_params .)
 
 
+state 89
+
+    (65) scope -> LBRACE new_scope statements pop_scope . RBRACE
+    RBRACE          shift and go to state 100
+
+
+state 90
+
+    (18) statements -> statement statements .
+    RBRACE          reduce using rule 18 (statements -> statement statements .)
+
+
+state 91
+
+    (23) statement -> assignment END .
+    END             reduce using rule 23 (statement -> assignment END .)
+    IF              reduce using rule 23 (statement -> assignment END .)
+    WHILE           reduce using rule 23 (statement -> assignment END .)
+    LBRACE          reduce using rule 23 (statement -> assignment END .)
+    ID              reduce using rule 23 (statement -> assignment END .)
+    LPAREN          reduce using rule 23 (statement -> assignment END .)
+    STRING_VALUE    reduce using rule 23 (statement -> assignment END .)
+    CHAR_VALUE      reduce using rule 23 (statement -> assignment END .)
+    BOOL_VALUE      reduce using rule 23 (statement -> assignment END .)
+    FLOAT_VALUE     reduce using rule 23 (statement -> assignment END .)
+    INTEGRAL_VALUE  reduce using rule 23 (statement -> assignment END .)
+    RBRACE          reduce using rule 23 (statement -> assignment END .)
+
+
+state 92
+
+    (24) statement -> declaration_init END .
+    END             reduce using rule 24 (statement -> declaration_init END .)
+    IF              reduce using rule 24 (statement -> declaration_init END .)
+    WHILE           reduce using rule 24 (statement -> declaration_init END .)
+    LBRACE          reduce using rule 24 (statement -> declaration_init END .)
+    ID              reduce using rule 24 (statement -> declaration_init END .)
+    LPAREN          reduce using rule 24 (statement -> declaration_init END .)
+    STRING_VALUE    reduce using rule 24 (statement -> declaration_init END .)
+    CHAR_VALUE      reduce using rule 24 (statement -> declaration_init END .)
+    BOOL_VALUE      reduce using rule 24 (statement -> declaration_init END .)
+    FLOAT_VALUE     reduce using rule 24 (statement -> declaration_init END .)
+    INTEGRAL_VALUE  reduce using rule 24 (statement -> declaration_init END .)
+    RBRACE          reduce using rule 24 (statement -> declaration_init END .)
+
+
+state 93
+
+    (25) statement -> declaration END .
+    END             reduce using rule 25 (statement -> declaration END .)
+    IF              reduce using rule 25 (statement -> declaration END .)
+    WHILE           reduce using rule 25 (statement -> declaration END .)
+    LBRACE          reduce using rule 25 (statement -> declaration END .)
+    ID              reduce using rule 25 (statement -> declaration END .)
+    LPAREN          reduce using rule 25 (statement -> declaration END .)
+    STRING_VALUE    reduce using rule 25 (statement -> declaration END .)
+    CHAR_VALUE      reduce using rule 25 (statement -> declaration END .)
+    BOOL_VALUE      reduce using rule 25 (statement -> declaration END .)
+    FLOAT_VALUE     reduce using rule 25 (statement -> declaration END .)
+    INTEGRAL_VALUE  reduce using rule 25 (statement -> declaration END .)
+    RBRACE          reduce using rule 25 (statement -> declaration END .)
+
+
+state 94
+
+    (26) statement -> expression END .
+    END             reduce using rule 26 (statement -> expression END .)
+    IF              reduce using rule 26 (statement -> expression END .)
+    WHILE           reduce using rule 26 (statement -> expression END .)
+    LBRACE          reduce using rule 26 (statement -> expression END .)
+    ID              reduce using rule 26 (statement -> expression END .)
+    LPAREN          reduce using rule 26 (statement -> expression END .)
+    STRING_VALUE    reduce using rule 26 (statement -> expression END .)
+    CHAR_VALUE      reduce using rule 26 (statement -> expression END .)
+    BOOL_VALUE      reduce using rule 26 (statement -> expression END .)
+    FLOAT_VALUE     reduce using rule 26 (statement -> expression END .)
+    INTEGRAL_VALUE  reduce using rule 26 (statement -> expression END .)
+    RBRACE          reduce using rule 26 (statement -> expression END .)
+
+
+state 95
+
+    (28) if_statement -> IF LPAREN . expression RPAREN scope else_statement
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    expression                     shift and go to state 101
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 96
+
+    (27) while_statement -> WHILE LPAREN . expression RPAREN scope
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    expression                     shift and go to state 102
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 97
+
+    (34) assignment -> ID LSBRACKET . arithmetic_layer RSBRACKET ASSIGN expression
+    (39) expression -> ID LSBRACKET . arithmetic_layer RSBRACKET
+    (4) array_name -> ID LSBRACKET . arithmetic_layer RSBRACKET
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 20
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    arithmetic_layer               shift and go to state 103
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 98
+
+    (35) assignment -> ID ASSIGN . expression
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    expression                     shift and go to state 104
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 99
+
+    (33) declaration_init -> var_name COLON . type ASSIGN expression
+    (32) declaration -> var_name COLON . type
+    (52) type -> . BOOL_TYPE
+    (53) type -> . STRING_TYPE
+    (54) type -> . CHAR_TYPE
+    (55) type -> . FLOAT_TYPE
+    (56) type -> . UNSIGNED_TYPE
+    (57) type -> . SIGNED_TYPE
+    BOOL_TYPE       shift and go to state 14
+    STRING_TYPE     shift and go to state 15
+    CHAR_TYPE       shift and go to state 16
+    FLOAT_TYPE      shift and go to state 17
+    UNSIGNED_TYPE   shift and go to state 18
+    SIGNED_TYPE     shift and go to state 19
+
+    type                           shift and go to state 105
+
+state 100
+
+    (65) scope -> LBRACE new_scope statements pop_scope RBRACE .
+    ID              reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    $end            reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    END             reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    IF              reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    WHILE           reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    LBRACE          reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    LPAREN          reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    STRING_VALUE    reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    CHAR_VALUE      reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    BOOL_VALUE      reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    FLOAT_VALUE     reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    INTEGRAL_VALUE  reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    RBRACE          reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+    ELSE            reduce using rule 65 (scope -> LBRACE new_scope statements pop_scope RBRACE .)
+
+
+state 101
+
+    (28) if_statement -> IF LPAREN expression . RPAREN scope else_statement
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    RPAREN          shift and go to state 106
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+
+
+state 102
+
+    (27) while_statement -> WHILE LPAREN expression . RPAREN scope
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    RPAREN          shift and go to state 107
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+
+
+state 103
+
+    (34) assignment -> ID LSBRACKET arithmetic_layer . RSBRACKET ASSIGN expression
+    (39) expression -> ID LSBRACKET arithmetic_layer . RSBRACKET
+    (4) array_name -> ID LSBRACKET arithmetic_layer . RSBRACKET
+    (43) arithmetic_layer -> arithmetic_layer . MINUS term
+    (44) arithmetic_layer -> arithmetic_layer . PLUS term
+    RSBRACKET       shift and go to state 108
+    MINUS           shift and go to state 37
+    PLUS            shift and go to state 38
+
+
+state 104
+
+    (35) assignment -> ID ASSIGN expression .
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    END             reduce using rule 35 (assignment -> ID ASSIGN expression .)
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+
+
+state 105
+
+    (33) declaration_init -> var_name COLON type . ASSIGN expression
+    (32) declaration -> var_name COLON type .
+    ASSIGN          shift and go to state 109
+    END             reduce using rule 32 (declaration -> var_name COLON type .)
+
+
+state 106
+
+    (28) if_statement -> IF LPAREN expression RPAREN . scope else_statement
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    LBRACE          shift and go to state 61
+
+    scope                          shift and go to state 110
+
+state 107
+
+    (27) while_statement -> WHILE LPAREN expression RPAREN . scope
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    LBRACE          shift and go to state 61
+
+    scope                          shift and go to state 111
+
+state 108
+
+    (34) assignment -> ID LSBRACKET arithmetic_layer RSBRACKET . ASSIGN expression
+    (39) expression -> ID LSBRACKET arithmetic_layer RSBRACKET .
+    (4) array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .
+    ASSIGN          shift and go to state 112
+    END             reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    OR              reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    AND             reduce using rule 39 (expression -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+    COLON           reduce using rule 4 (array_name -> ID LSBRACKET arithmetic_layer RSBRACKET .)
+
+
+state 109
+
+    (33) declaration_init -> var_name COLON type ASSIGN . expression
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
+
+    expression                     shift and go to state 113
+    comparison_layer               shift and go to state 42
+    arithmetic_layer               shift and go to state 44
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
+
+state 110
+
+    (28) if_statement -> IF LPAREN expression RPAREN scope . else_statement
+    (29) else_statement -> .
+    (30) else_statement -> . ELSE if_statement
+    (31) else_statement -> . ELSE scope
+    END             reduce using rule 29 (else_statement -> .)
+    IF              reduce using rule 29 (else_statement -> .)
+    WHILE           reduce using rule 29 (else_statement -> .)
+    LBRACE          reduce using rule 29 (else_statement -> .)
+    ID              reduce using rule 29 (else_statement -> .)
+    LPAREN          reduce using rule 29 (else_statement -> .)
+    STRING_VALUE    reduce using rule 29 (else_statement -> .)
+    CHAR_VALUE      reduce using rule 29 (else_statement -> .)
+    BOOL_VALUE      reduce using rule 29 (else_statement -> .)
+    FLOAT_VALUE     reduce using rule 29 (else_statement -> .)
+    INTEGRAL_VALUE  reduce using rule 29 (else_statement -> .)
+    RBRACE          reduce using rule 29 (else_statement -> .)
+    ELSE            shift and go to state 115
+
+    else_statement                 shift and go to state 114
+
+state 111
+
+    (27) while_statement -> WHILE LPAREN expression RPAREN scope .
+    END             reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    IF              reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    WHILE           reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    LBRACE          reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    ID              reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    LPAREN          reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    STRING_VALUE    reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    CHAR_VALUE      reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    BOOL_VALUE      reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    FLOAT_VALUE     reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    INTEGRAL_VALUE  reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+    RBRACE          reduce using rule 27 (while_statement -> WHILE LPAREN expression RPAREN scope .)
+
+
 state 112
 
-    (33) array_create -> type ID LSBRACKET term RSBRACKET END .
-    END             reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    IF              reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    WHILE           reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    LBRACE          reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    ID              reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    BOOL_TYPE       reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    CHAR_TYPE       reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    FLOAT_TYPE      reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    UNSIGNED_TYPE   reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    SIGNED_TYPE     reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    LPAREN          reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    CHAR_VALUE      reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    BOOL_VALUE      reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    FLOAT_VALUE     reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    INTEGRAL_VALUE  reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
-    RBRACE          reduce using rule 33 (array_create -> type ID LSBRACKET term RSBRACKET END .)
+    (34) assignment -> ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN . expression
+    (36) expression -> . comparison_layer
+    (37) expression -> . expression OR comparison_layer
+    (38) expression -> . expression AND comparison_layer
+    (39) expression -> . ID LSBRACKET arithmetic_layer RSBRACKET
+    (40) comparison_layer -> . arithmetic_layer
+    (41) comparison_layer -> . comparison_layer COMPARATOR arithmetic_layer
+    (42) arithmetic_layer -> . term
+    (43) arithmetic_layer -> . arithmetic_layer MINUS term
+    (44) arithmetic_layer -> . arithmetic_layer PLUS term
+    (45) term -> . factor
+    (46) term -> . term DIVISION factor
+    (47) term -> . term MULTIPLICATION factor
+    (48) factor -> . ID
+    (49) factor -> . value
+    (50) factor -> . LPAREN expression RPAREN
+    (51) factor -> . function_call
+    (60) value -> . STRING_VALUE
+    (61) value -> . CHAR_VALUE
+    (62) value -> . BOOL_VALUE
+    (63) value -> . FLOAT_VALUE
+    (64) value -> . INTEGRAL_VALUE
+    (12) function_call -> . ID LPAREN actual_params RPAREN
+    ID              shift and go to state 43
+    LPAREN          shift and go to state 25
+    STRING_VALUE    shift and go to state 27
+    CHAR_VALUE      shift and go to state 28
+    BOOL_VALUE      shift and go to state 29
+    FLOAT_VALUE     shift and go to state 30
+    INTEGRAL_VALUE  shift and go to state 31
 
+    arithmetic_layer               shift and go to state 44
+    expression                     shift and go to state 116
+    comparison_layer               shift and go to state 42
+    term                           shift and go to state 22
+    factor                         shift and go to state 23
+    value                          shift and go to state 24
+    function_call                  shift and go to state 26
 
 state 113
 
-    (67) else_statement -> ELSE if_statement .
-    END             reduce using rule 67 (else_statement -> ELSE if_statement .)
-    IF              reduce using rule 67 (else_statement -> ELSE if_statement .)
-    WHILE           reduce using rule 67 (else_statement -> ELSE if_statement .)
-    LBRACE          reduce using rule 67 (else_statement -> ELSE if_statement .)
-    ID              reduce using rule 67 (else_statement -> ELSE if_statement .)
-    BOOL_TYPE       reduce using rule 67 (else_statement -> ELSE if_statement .)
-    CHAR_TYPE       reduce using rule 67 (else_statement -> ELSE if_statement .)
-    FLOAT_TYPE      reduce using rule 67 (else_statement -> ELSE if_statement .)
-    UNSIGNED_TYPE   reduce using rule 67 (else_statement -> ELSE if_statement .)
-    SIGNED_TYPE     reduce using rule 67 (else_statement -> ELSE if_statement .)
-    LPAREN          reduce using rule 67 (else_statement -> ELSE if_statement .)
-    CHAR_VALUE      reduce using rule 67 (else_statement -> ELSE if_statement .)
-    BOOL_VALUE      reduce using rule 67 (else_statement -> ELSE if_statement .)
-    FLOAT_VALUE     reduce using rule 67 (else_statement -> ELSE if_statement .)
-    INTEGRAL_VALUE  reduce using rule 67 (else_statement -> ELSE if_statement .)
-    RBRACE          reduce using rule 67 (else_statement -> ELSE if_statement .)
+    (33) declaration_init -> var_name COLON type ASSIGN expression .
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    END             reduce using rule 33 (declaration_init -> var_name COLON type ASSIGN expression .)
+    OR              shift and go to state 56
+    AND             shift and go to state 57
 
 
 state 114
 
-    (68) else_statement -> ELSE scope .
-    END             reduce using rule 68 (else_statement -> ELSE scope .)
-    IF              reduce using rule 68 (else_statement -> ELSE scope .)
-    WHILE           reduce using rule 68 (else_statement -> ELSE scope .)
-    LBRACE          reduce using rule 68 (else_statement -> ELSE scope .)
-    ID              reduce using rule 68 (else_statement -> ELSE scope .)
-    BOOL_TYPE       reduce using rule 68 (else_statement -> ELSE scope .)
-    CHAR_TYPE       reduce using rule 68 (else_statement -> ELSE scope .)
-    FLOAT_TYPE      reduce using rule 68 (else_statement -> ELSE scope .)
-    UNSIGNED_TYPE   reduce using rule 68 (else_statement -> ELSE scope .)
-    SIGNED_TYPE     reduce using rule 68 (else_statement -> ELSE scope .)
-    LPAREN          reduce using rule 68 (else_statement -> ELSE scope .)
-    CHAR_VALUE      reduce using rule 68 (else_statement -> ELSE scope .)
-    BOOL_VALUE      reduce using rule 68 (else_statement -> ELSE scope .)
-    FLOAT_VALUE     reduce using rule 68 (else_statement -> ELSE scope .)
-    INTEGRAL_VALUE  reduce using rule 68 (else_statement -> ELSE scope .)
-    RBRACE          reduce using rule 68 (else_statement -> ELSE scope .)
+    (28) if_statement -> IF LPAREN expression RPAREN scope else_statement .
+    END             reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    IF              reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    WHILE           reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    LBRACE          reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    ID              reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    LPAREN          reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    STRING_VALUE    reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    CHAR_VALUE      reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    BOOL_VALUE      reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    FLOAT_VALUE     reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    INTEGRAL_VALUE  reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
+    RBRACE          reduce using rule 28 (if_statement -> IF LPAREN expression RPAREN scope else_statement .)
 
 
 state 115
 
-    (34) array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .
-    END             reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    IF              reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    WHILE           reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    LBRACE          reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    ID              reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    BOOL_TYPE       reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    CHAR_TYPE       reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    FLOAT_TYPE      reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    UNSIGNED_TYPE   reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    SIGNED_TYPE     reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    LPAREN          reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    CHAR_VALUE      reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    BOOL_VALUE      reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    FLOAT_VALUE     reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    INTEGRAL_VALUE  reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
-    RBRACE          reduce using rule 34 (array_assign -> ID LSBRACKET term RSBRACKET ASSIGN expression END .)
+    (30) else_statement -> ELSE . if_statement
+    (31) else_statement -> ELSE . scope
+    (28) if_statement -> . IF LPAREN expression RPAREN scope else_statement
+    (65) scope -> . LBRACE new_scope statements pop_scope RBRACE
+    IF              shift and go to state 84
+    LBRACE          shift and go to state 61
+
+    if_statement                   shift and go to state 117
+    scope                          shift and go to state 118
+
+state 116
+
+    (34) assignment -> ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression .
+    (37) expression -> expression . OR comparison_layer
+    (38) expression -> expression . AND comparison_layer
+    END             reduce using rule 34 (assignment -> ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression .)
+    OR              shift and go to state 56
+    AND             shift and go to state 57
+
+
+state 117
+
+    (30) else_statement -> ELSE if_statement .
+    END             reduce using rule 30 (else_statement -> ELSE if_statement .)
+    IF              reduce using rule 30 (else_statement -> ELSE if_statement .)
+    WHILE           reduce using rule 30 (else_statement -> ELSE if_statement .)
+    LBRACE          reduce using rule 30 (else_statement -> ELSE if_statement .)
+    ID              reduce using rule 30 (else_statement -> ELSE if_statement .)
+    LPAREN          reduce using rule 30 (else_statement -> ELSE if_statement .)
+    STRING_VALUE    reduce using rule 30 (else_statement -> ELSE if_statement .)
+    CHAR_VALUE      reduce using rule 30 (else_statement -> ELSE if_statement .)
+    BOOL_VALUE      reduce using rule 30 (else_statement -> ELSE if_statement .)
+    FLOAT_VALUE     reduce using rule 30 (else_statement -> ELSE if_statement .)
+    INTEGRAL_VALUE  reduce using rule 30 (else_statement -> ELSE if_statement .)
+    RBRACE          reduce using rule 30 (else_statement -> ELSE if_statement .)
+
+
+state 118
+
+    (31) else_statement -> ELSE scope .
+    END             reduce using rule 31 (else_statement -> ELSE scope .)
+    IF              reduce using rule 31 (else_statement -> ELSE scope .)
+    WHILE           reduce using rule 31 (else_statement -> ELSE scope .)
+    LBRACE          reduce using rule 31 (else_statement -> ELSE scope .)
+    ID              reduce using rule 31 (else_statement -> ELSE scope .)
+    LPAREN          reduce using rule 31 (else_statement -> ELSE scope .)
+    STRING_VALUE    reduce using rule 31 (else_statement -> ELSE scope .)
+    CHAR_VALUE      reduce using rule 31 (else_statement -> ELSE scope .)
+    BOOL_VALUE      reduce using rule 31 (else_statement -> ELSE scope .)
+    FLOAT_VALUE     reduce using rule 31 (else_statement -> ELSE scope .)
+    INTEGRAL_VALUE  reduce using rule 31 (else_statement -> ELSE scope .)
+    RBRACE          reduce using rule 31 (else_statement -> ELSE scope .)

@@ -6,10 +6,11 @@ UNSIGNED_TYPE : u64 | u32 | u16 | u8 | usize
 FLOAT_TYPE    : f64 | f32
 BOOL_TYPE     : bool
 CHAR_TYPE     : char
-ABYSS_TYPE    : abyss
 STRING_TYPE   : str
+ABYSS_TYPE    : abyss
 
-type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | ABYSS_TYPE | STRING_TYPE
+
+type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | STRING_TYPE | ABYSS_TYPE
 
 INTEGRAL_VALUE : -?\d+
 FLOAT_VALUE    : -?\d+(\.\d+)?
@@ -19,10 +20,11 @@ STRING_VALUE   : \"[^\"]*\"
 
 value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE | STRING_VALUE
 
-WHILE  : while
-FOR    : for
-IF     : if
-ELSE   : else
+WHILE   : while
+FOR     : for
+IF      : if
+ELSE    : else
+DECLARE : let
 
 AND            : &&
 OR             : ||
@@ -54,42 +56,47 @@ COMMA       : ,
 ```
 program : functions
 
-index               : ID | array_index
-array_index         : ID LSBRACKET artihmetic_layer RSBRACKET
+functions               : function functions | Ɛ
+function                : ID LPAREN formal_params RPAREN COLON type scope
 
-functions           : function functions | Ɛ
-function            : ID LPAREN formal_params RPAREN COLON type scope
+formal_params           : ID COLON type multi_formal_params | ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
+multi_formal_params     : COMMA ID COLON type multi_formal_params | COMMA ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
 
-formal_params       : type index multi_params | Ɛ
-multi_formal_params : COMMA type index multi_formal_params | Ɛ
+function_call           : ID LPAREN actual_params RPAREN
 
-function_call       : index LPAREN actual_params RPAREN
+actual_params           : expression multi_actual_params | Ɛ
+multi_actual_params     : COMMA expression multi_actual_params | Ɛ
 
-actual_params       : expression multi_actual_params | Ɛ
-multi_actual_params : COMMA expression multi_actual_params | Ɛ
+scope                   : LBRACE statements RBRACE
 
-scope               : LBRACE statements RBRACE
+statements              : statement statements | Ɛ
+statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | END
 
-statements          : statement statements | Ɛ
-statement           : expression END | declaration END | declaration_init END | assignment END | while_statement | for_statement | if_statement | END
+for_component           : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
 
-declaration         : index COLON type
-declaration_init    : index COLON type ASSIGN expression
+while_statement         : WHILE LPAREN expression RPAREN scope
+for_statement           : FOR LPAREN for_component END expression END for_component RPAREN scope
+if_statement            : IF LPAREN expression RPAREN scope else_statement
+else_statement          : ELSE scope | ELSE if_statement | Ɛ
 
-assignment          : index ASSIGN expression
+scalar_declaration      : DECLARE ID COLON type
+array_declaration       : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type
 
-for_initialization  : declaration_init END | assignment END | END //TODO
+scalar_declaration_init : DECLARE ID COLON type ASSIGN expression
+array_declaration_init  : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON ASSIGN expression
 
-while_statement     : WHILE LPAREN expression RPAREN scope
-for_statement       : FOR LPAREN for_initialization expression END expression RPAREN scope
-if_statement        : IF LPAREN expression RPAREN scope else_statement
-else_statement      : ELSE scope | ELSE if_statement | Ɛ
-insertions          : index INSERTION expression multi_insertions | Ɛ
-multi_insertions    : INSERTION expression multi_insertions | Ɛ
+scalar_assignment       : ID ASSIGN expression
+array_assignment        : ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
 
-expression          : expression AND comparison_layer | expression OR comparison_layer | comparison_layer
-comparison_layer    : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
-artihmetic_layer    : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
-term                : term MULTIPLICATION factor | term DIVISION factor | factor
-factor              : value | index | LPAREN expression LPAREN | function_call
+insertions              : ID INSERTION expression multi_insertions | Ɛ
+multi_insertions        : INSERTION expression multi_insertions | Ɛ
+
+expression              : ID LSBRACKET arithmetic_layer RSBRACKET | expression AND comparison_layer | expression OR comparison_layer | comparison_layer
+comparison_layer        : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer
+artihmetic_layer        : artihmetic_layer PLUS term | artihmetic_layer MINUS term | term
+term                    : term MULTIPLICATION factor | term DIVISION factor | factor
+factor                  : value | ID | ID LSBRACKET arithmetic_layer RSBRACKET | LPAREN expression LPAREN | function_call
 ```
+
+-- "ID LSBRACKET arithmetic_layer RSBRACKET" is for indexing an array as in "x[i + 1];"
+-- "ID LSBRACKET INTEGRAL_VALUE RSBRACKET" is for declaring an array "let x[100]:i16;"
