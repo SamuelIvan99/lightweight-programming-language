@@ -35,7 +35,7 @@ class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE, STRING_TYPE, ABYSS_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
                ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
-               WHILE, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
+               WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
                COLON, COMMA, DECLARE, INSERTION, EXTRACTION }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
@@ -53,6 +53,7 @@ class BasedLexer(Lexer):
     STRING_VALUE   = r"\"[^\"]*\""
 
     WHILE    = r"while"
+    FOR   = r"for"
     IF       = r"if"
     ELSE     = r"else"
     DECLARE  = r"let"
@@ -167,7 +168,7 @@ class BasedParser(Parser):
     def pop_scope(self, p):
         self.scalar_bindings.exit()
         popped = self.array_bindings.exit()
-        return "".join([f"free({name});" for name, _ in popped])
+        return "".join([f"free({name}.value);" for name, _ in popped])
     #endregion
 
     #region statements
@@ -195,6 +196,26 @@ class BasedParser(Parser):
     @_("array_declaration_init END")
     def statement(self, p):
         return f"{p.array_declaration_init};"
+
+    @_("scalar_assignment")
+    def for_component(self, p):
+        return f"{p.scalar_assignment}"
+    @_("array_assignment")
+    def for_component(self, p):
+        return f"{p.array_assignment}"
+    @_("scalar_declaration_init")
+    def for_component(self, p):
+        return f"{p.scalar_declaration_init}"
+    @_("array_declaration_init")
+    def for_component(self, p):
+        return f"{p.array_declaration_init}"
+    @_("expression")
+    def for_component(self, p):
+        return f"{p.expression}"
+    @_("")
+    def for_component(self, p):
+        return ""
+
     @_("scalar_assignment END")
     def statement(self, p):
         return f"{p.scalar_assignment};"
@@ -207,6 +228,9 @@ class BasedParser(Parser):
     @_("while_statement")
     def statement(self, p):
         return f"{p.while_statement}"
+    @_("for_statement")
+    def statement(self, p):
+        return f"{p.for_statement}"
     @_("if_statement")
     def statement(self, p):
         return f"{p.if_statement}"
@@ -215,7 +239,13 @@ class BasedParser(Parser):
         return ";"
     #endregion
 
-    #whilestatement    
+    #region forstament
+    @_("FOR LPAREN for_component END expression END for_component RPAREN scope")
+    def for_statement(self,p):
+        return f"for({p.for_component0};{p.expression};{p.for_component1}){p.scope}"
+    #endregion
+
+    #region whilestatement    
     @_("WHILE LPAREN expression RPAREN scope")
     def while_statement(self, p):
         return f"while({p.expression}){p.scope}"
@@ -256,7 +286,7 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
 
-        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
+        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID}.size)"
     #endregion
 
     #region declaration_init
@@ -449,6 +479,7 @@ class BasedParser(Parser):
     @_("CHAR_VALUE")
     def value(self, p):
         return p.CHAR_VALUE
+
     @_("STRING_VALUE")
     def value(self, p):
         return p.STRING_VALUE

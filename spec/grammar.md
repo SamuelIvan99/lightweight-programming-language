@@ -21,6 +21,7 @@ STRING_VALUE   : \"[^\"]*\"
 value          : INTEGRAL_VALUE | FLOAT_VALUE | BOOL_VALUE | CHAR_VALUE | STRING_VALUE
 
 WHILE   : while
+FOR     : for
 IF      : if
 ELSE    : else
 DECLARE : let
@@ -69,9 +70,12 @@ multi_actual_params     : COMMA expression multi_actual_params | Ɛ
 scope                   : LBRACE statements RBRACE
 
 statements              : statement statements | Ɛ
-statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | if_statement | END
+statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | END
+
+for_component           : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
 
 while_statement         : WHILE LPAREN expression RPAREN scope
+for_statement           : FOR LPAREN for_component END expression END for_component RPAREN scope
 if_statement            : IF LPAREN expression RPAREN scope else_statement
 else_statement          : ELSE scope | ELSE if_statement | Ɛ
 

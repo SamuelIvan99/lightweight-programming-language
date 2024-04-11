@@ -1,27 +1,19 @@
-my_function(x[50]:i16, truth:bool, y[50]:char):i16 {
-    let y[50]:i16;
-    {
-        let x[20]:char;
-        {
-            let u[10]:bool;
-        }
-    }
-}
 
-
-main(argc:i16, argv[100]:char):abyss {
-    let x:i16;
-    {
-        let x:i16;
-        x = 2 + 1 / (1 * 100);
-        let y[100]:i32;
-        let abracadabra[1]:bool;
-        abracadabra[10 + 10] = 1;
-        y[1] = 2;
-        y[2] = x;
-        y[1] = y[2];
+main():i16{
+    my_fn(2+2, 1231234);
+    if (1 < 2 && 2 < 3 && 3 < 4) {}
+    let x:i32 = 10;
+    while (2<3) {}
+    for(; true; let z:i32 = 7) {
+        let new_var:char = 'c';
+        let new_var:char = 'c';
     }
+
     let abracadabra[50]:char;
+    {
+        let abracadabra[50]:char;
+        let abracadabra[50]:char;
+    }
     let mama:bool;
 }
 
