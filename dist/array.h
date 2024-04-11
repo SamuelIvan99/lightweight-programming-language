@@ -2,14 +2,14 @@
 #define ARRAY_H
 
 #include <stdlib.h>
-#include "stdio.h"
+#include <stdio.h>
 
 typedef struct{
-    void* value;
+    void *value;
     int size;
-}Array;
+} Array;
 
-void* getElement(Array x, int pos){
+void *getElement(Array x, int pos){
     if(pos >= x.size){
         printf("Index out of bounds: %d\n", pos);
         exit(1);

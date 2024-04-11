@@ -1,4 +1,15 @@
-main(argc:i16, argv['c']:char):abyss {
+my_function(x[50]:i16, truth:bool, y[50]:char):i16 {
+    let y[50]:i16;
+    {
+        let x[20]:char;
+        {
+            let u[10]:bool;
+        }
+    }
+}
+
+
+main(argc:i16, argv[100]:char):abyss {
     let x:i16;
     {
         let x:i16;
@@ -11,6 +22,6 @@ main(argc:i16, argv['c']:char):abyss {
         y[1] = y[2];
     }
     let abracadabra[50]:char;
-    let x:bool;
+    let mama:bool;
 }
 

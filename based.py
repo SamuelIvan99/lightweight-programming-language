@@ -28,6 +28,7 @@ class Bindings:
         while len(self._stack) > 0 and self._stack[0] != "#":
             variable = self._stack.pop(0)
             popped.append(variable)
+        self._stack.pop(0)
         return popped
 
 class BasedLexer(Lexer):
@@ -119,10 +120,10 @@ class BasedParser(Parser):
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
         return f"{mapping} {p.ID}{p.multi_formal_params}"
-    @_("ID LSBRACKET term RSBRACKET COLON type multi_formal_params")
+    @_("ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params")
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
-        return f"{mapping} {p.ID}[{p.term}]{p.multi_formal_params}"
+        return f"{mapping} {p.ID}[{p.INTEGRAL_VALUE}]{p.multi_formal_params}"
     @_("")
     def formal_params(self, p):
         return ""
@@ -130,10 +131,10 @@ class BasedParser(Parser):
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
         return f", {mapping} {p.ID}{p.multi_formal_params}"
-    @_("COMMA ID LSBRACKET term RSBRACKET COLON type multi_formal_params")
+    @_("COMMA ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params")
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
-        return f", {mapping} {p.ID}[{p.term}]{p.multi_formal_params}"
+        return f", {mapping} {p.ID}[{p.INTEGRAL_VALUE}]{p.multi_formal_params}"
     @_("")
     def multi_formal_params(self, p):
         return ""
@@ -246,7 +247,7 @@ class BasedParser(Parser):
         self.scalar_bindings.bind(p.ID, mapping)
         return f"{mapping} {p.ID}"
 
-    @_("DECLARE ID LSBRACKET term RSBRACKET COLON type")
+    @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type")
     def array_declaration(self, p):
         if self.array_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
@@ -255,7 +256,7 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
 
-        return f"Array {p.ID};{p.ID}.size={p.term};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
+        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
     #endregion
 
     #region declaration_init
@@ -271,7 +272,7 @@ class BasedParser(Parser):
             return f"{mapping} {p.ID}[]={p.expression}"
         else:
             return f"{mapping} {p.ID}={p.expression}"
-    @_("DECLARE ID LSBRACKET term RSBRACKET COLON ASSIGN expression") 
+    @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON ASSIGN expression") 
     def array_declaration_init(self, p):
         raise NotImplementedError()
     #endregion

@@ -58,8 +58,8 @@ program : functions
 functions               : function functions | Ɛ
 function                : ID LPAREN formal_params RPAREN COLON type scope
 
-formal_params           : ID COLON type multi_formal_params | ID LSBRACKET term RSBRACKET COLON type multi_formal_params  | Ɛ
-multi_formal_params     : COMMA ID COLON type multi_formal_params | COMMA ID LSBRACKET term RSBRACKET COLON type multi_formal_params  | Ɛ
+formal_params           : ID COLON type multi_formal_params | ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
+multi_formal_params     : COMMA ID COLON type multi_formal_params | COMMA ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
 
 function_call           : ID LPAREN actual_params RPAREN
 
@@ -76,10 +76,10 @@ if_statement            : IF LPAREN expression RPAREN scope else_statement
 else_statement          : ELSE scope | ELSE if_statement | Ɛ
 
 scalar_declaration      : DECLARE ID COLON type
-array_declaration       : DECLARE ID LSBRACKET term RSBRACKET COLON type
+array_declaration       : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type
 
 scalar_declaration_init : DECLARE ID COLON type ASSIGN expression
-array_declaration_init  : DECLARE ID LSBRACKET term RSBRACKET COLON ASSIGN expression
+array_declaration_init  : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON ASSIGN expression
 
 scalar_assignment       : ID ASSIGN expression
 array_assignment        : ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
@@ -95,4 +95,4 @@ factor                  : value | ID | ID LSBRACKET arithmetic_layer RSBRACKET |
 ```
 
 -- "ID LSBRACKET arithmetic_layer RSBRACKET" is for indexing an array as in "x[i + 1];"
--- "ID LSBRACKET term RSBRACKET" is for declaring an array "let x[100]:i16;"
+-- "ID LSBRACKET INTEGRAL_VALUE RSBRACKET" is for declaring an array "let x[100]:i16;"

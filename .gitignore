@@ -1,4 +1,4 @@
-dist
+dist/*.c
 poetry.lock
 pyproject.toml
 __pycache__
