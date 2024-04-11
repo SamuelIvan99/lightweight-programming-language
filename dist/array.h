@@ -14,7 +14,7 @@ void *getElement(Array x, int pos){
         printf("Index out of bounds: %d\n", pos);
         exit(1);
     }
-    return x.value[pos];
+    return x.value;
 }
 
 #endif

@@ -54,7 +54,12 @@ COMMA       : ,
 # Syntactical Grammar
 
 ```
-program : functions
+program : globals
+
+globals : global globals | Ɛ
+global  : function | include
+
+include : USEC STRING_VALUE | USE STRING_VALUE
 
 functions               : function functions | Ɛ
 function                : ID LPAREN formal_params RPAREN COLON type scope
@@ -72,10 +77,12 @@ scope                   : LBRACE statements RBRACE
 statements              : statement statements | Ɛ
 statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | END
 
-for_component           : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
+for_init                : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
+for_condition           : expression | Ɛ
+for_increment           : scalar_assignment | array_assignment | expression | Ɛ
 
+for_statement           : FOR LPAREN for_init END for_condition END for_increment RPAREN scope
 while_statement         : WHILE LPAREN expression RPAREN scope
-for_statement           : FOR LPAREN for_component END expression END for_component RPAREN scope
 if_statement            : IF LPAREN expression RPAREN scope else_statement
 else_statement          : ELSE scope | ELSE if_statement | Ɛ
 

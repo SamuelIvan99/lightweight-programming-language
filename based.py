@@ -6,18 +6,21 @@ class Bindings:
     def __init__(self):
         self._stack = []
 
-    # def bind(self, name, type, value):
     def bind(self, name, mapping):
-        # self._stack.insert(0, (name, type, value))
         self._stack.insert(0, (name, mapping))
 
     def lookup(self, name_to_find):
+        scope_depth = []
         for result in self._stack:
             if result == "#":
-                break
-            name, mapping = result
-            if name == name_to_find:
-                return name, mapping
+                scope_depth.append(True)
+            else:
+                name, mapping = result
+                if name == name_to_find:
+                    return name, mapping
+
+                if len(scope_depth) == self._stack.count("#"):
+                    break
         return None
 
     def enter(self):
@@ -28,15 +31,17 @@ class Bindings:
         while len(self._stack) > 0 and self._stack[0] != "#":
             variable = self._stack.pop(0)
             popped.append(variable)
-        self._stack.pop(0)
+        if self._stack:
+            self._stack.pop(0)
         return popped
+
 
 class BasedLexer(Lexer):
     tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE, STRING_TYPE, ABYSS_TYPE,
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
                ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, DECLARE, INSERTION, EXTRACTION }
+               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, USEC, USE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -53,10 +58,13 @@ class BasedLexer(Lexer):
     STRING_VALUE   = r"\"[^\"]*\""
 
     WHILE    = r"while"
-    FOR   = r"for"
+    FOR      = r"for"
     IF       = r"if"
     ELSE     = r"else"
     DECLARE  = r"let"
+
+    USEC  = r"usec"
+    USE   = r"use"
 
     AND            = r"\&\&"
     OR             = r"\|\|"
@@ -99,18 +107,41 @@ class BasedParser(Parser):
         self.scalar_bindings = Bindings()
         self.array_bindings = Bindings()
 
-    @_("functions")
-    def program(self, p):
-        return f"{p.functions}"
+        self.lexer = BasedLexer()
+        self.result = ""
 
-    #region functions
-    @_("function functions")
-    def functions(self, p):
-        return f"{p.function}{p.functions}"
+    #region globals
+    @_("globals")
+    def program(self, p):
+        return f"{p.globals}"
+
+    @_("globall globals")
+    def globals(self, p):
+        return f"{p.globall}{p.globals}"
     @_("")
-    def functions(self, p):
+    def globals(self, p):
         return ""
-    #endregion
+    @_("function")
+    def globall(self, p):
+        return f"{p.function}"
+    @_("include")
+    def globall(self, p):
+        return f"{p.include}"
+    #end region
+
+    #region includes
+    @_("USEC STRING_VALUE")
+    def include(self, p):
+        return f"#include {p.STRING_VALUE}\n\n"
+    @_("USE STRING_VALUE")
+    def include(self, p):
+        file = str(p.STRING_VALUE).replace('\"','')
+        with open(file) as based_file:
+            program = based_file.read()
+            tokens = self.lexer.tokenize(program)
+            self.result += self.parse(tokens)
+        return ""
+    #end region
 
     #region function
     @_("ID LPAREN formal_params RPAREN COLON type scope")
@@ -196,26 +227,6 @@ class BasedParser(Parser):
     @_("array_declaration_init END")
     def statement(self, p):
         return f"{p.array_declaration_init};"
-
-    @_("scalar_assignment")
-    def for_component(self, p):
-        return f"{p.scalar_assignment}"
-    @_("array_assignment")
-    def for_component(self, p):
-        return f"{p.array_assignment}"
-    @_("scalar_declaration_init")
-    def for_component(self, p):
-        return f"{p.scalar_declaration_init}"
-    @_("array_declaration_init")
-    def for_component(self, p):
-        return f"{p.array_declaration_init}"
-    @_("expression")
-    def for_component(self, p):
-        return f"{p.expression}"
-    @_("")
-    def for_component(self, p):
-        return ""
-
     @_("scalar_assignment END")
     def statement(self, p):
         return f"{p.scalar_assignment};"
@@ -239,10 +250,46 @@ class BasedParser(Parser):
         return ";"
     #endregion
 
-    #region forstament
-    @_("FOR LPAREN for_component END expression END for_component RPAREN scope")
+    #region forstatement
+    @_("scalar_declaration_init")
+    def for_init(self, p):
+        return f"{p.scalar_declaration_init}"
+    @_("scalar_assignment")
+    def for_init(self, p):
+        return f"{p.scalar_assignment}"
+    @_("array_declaration_init")
+    def for_init(self, p):
+        return f"{p.array_declaration_init}"
+    @_("array_assignment")
+    def for_init(self, p):
+        return f"{p.array_assignment}"
+    @_("expression")
+    def for_init(self, p):
+        return f"{p.expression}"
+    @_("")
+    def for_init(self, p):
+        return ""
+    @_("expression")
+    def for_condition(self, p):
+        return f"{p.expression}"
+    @_("")
+    def for_condition(self, p):
+        return ""
+    @_("scalar_assignment")
+    def for_increment(self, p):
+        return f"{p.scalar_assignment}"
+    @_("array_assignment")
+    def for_increment(self, p):
+        return f"{p.array_assignment}"
+    @_("expression")
+    def for_increment(self, p):
+        return f"{p.expression}"
+    @_("")
+    def for_increment(self, p):
+        return ""
+    @_("FOR LPAREN new_scope for_init END for_condition END for_increment RPAREN LBRACE statements pop_scope RBRACE")
     def for_statement(self,p):
-        return f"for({p.for_component0};{p.expression};{p.for_component1}){p.scope}"
+        return f"for({p.for_init};{p.for_condition};{p.for_increment}){{{p.statements}{p.pop_scope}}}"
     #endregion
 
     #region whilestatement    
@@ -276,7 +323,6 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.scalar_bindings.bind(p.ID, mapping)
         return f"{mapping} {p.ID}"
-
     @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type")
     def array_declaration(self, p):
         if self.array_bindings.lookup(p.ID):
@@ -324,7 +370,7 @@ class BasedParser(Parser):
             exit(1)
 
         _, mapping = result
-        return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))={p.expression}"
+        return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]={p.expression}"
     #endregion
 
     #region expression
@@ -372,9 +418,20 @@ class BasedParser(Parser):
         return f"{p.value}"
     @_("ID LSBRACKET arithmetic_layer RSBRACKET")
     def factor(self, p):
-        return f"{p.ID}[{p.arithmetic_layer}]"
+        result = self.array_bindings.lookup(p.ID)
+        if not result:
+            print(f"ERROR: variable '{p.ID}' not in scope")
+            exit(1)
+
+        _, mapping = result
+        return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]"
     @_("ID")
     def factor(self, p):
+        result = self.scalar_bindings.lookup(p.ID)
+        if not result:
+            print(f"ERROR: variable '{p.ID}' not in scope")
+            exit(1)
+
         return f"{p.ID}"
     #endregion
 
@@ -479,7 +536,6 @@ class BasedParser(Parser):
     @_("CHAR_VALUE")
     def value(self, p):
         return p.CHAR_VALUE
-
     @_("STRING_VALUE")
     def value(self, p):
         return p.STRING_VALUE
@@ -496,17 +552,18 @@ def main():
     if not os.path.exists("bin"):
         os.mkdir("bin")
 
-    lexer = BasedLexer()
     parser = BasedParser()
-
+    outputCode = ""
     with open("test.based") as based_file:
         program = based_file.read()
-        tokens = lexer.tokenize(program)
+        tokens = parser.lexer.tokenize(program)
         result = parser.parse(tokens)
+        outputCode = parser.result + result
 
     with open("dist/out.c", "a") as c_file:
-        c_file.write(f"#include \"array.h\"\n\n{result}")
+        c_file.write(f"{outputCode}")
     subprocess.run(["clang-format", "-i", "dist/out.c"])
-    # os.system("gcc dist/out.c -o bin/based")
-if __name__ == '__main__':
+    os.system("gcc dist/out.c -o bin/based")
+
+if __name__ == "__main__":
     main()
