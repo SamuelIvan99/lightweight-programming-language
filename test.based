@@ -9,7 +9,20 @@ my_fn(i32 x, i64 y):bool{
     }
     else {}
 
-    {i32 x = 2;}
+    i32 w;
+    {
+        i32 w;
+        i32 x = 2;
+        i32 a = 3;
+        w = 3 + 5;
+        i32 k[3];
+        i32 m[67];
+        m[2+5] = 5;
+        i32 b = 2<5;
+        w = m[b];
+    }
+    
+    
 }
 
 main():i16{
@@ -17,7 +30,7 @@ main():i16{
     if (1 < 2 && 2 < 3 && 3 < 4) {}
     i32 x = 10;
     while (2<3) {}
-    for(i32 i = 1;i<x;2+2) {
+    for(; true; 2) {
         char new_var = 'c';
     }
 
