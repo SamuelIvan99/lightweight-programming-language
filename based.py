@@ -168,7 +168,7 @@ class BasedParser(Parser):
     def pop_scope(self, p):
         self.scalar_bindings.exit()
         popped = self.array_bindings.exit()
-        return "".join([f"free({name});" for name, _ in popped])
+        return "".join([f"free({name}.value);" for name, _ in popped])
     #endregion
 
     #region statements
@@ -239,7 +239,13 @@ class BasedParser(Parser):
         return ";"
     #endregion
 
-    #whilestatement    
+    #region forstament
+    @_("FOR LPAREN for_component END expression END for_component RPAREN scope")
+    def for_statement(self,p):
+        return f"for({p.for_component0};{p.expression};{p.for_component1}){p.scope}"
+    #endregion
+
+    #region whilestatement    
     @_("WHILE LPAREN expression RPAREN scope")
     def while_statement(self, p):
         return f"while({p.expression}){p.scope}"
@@ -280,7 +286,7 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
 
-        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID})"
+        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID}.size)"
     #endregion
 
     #region declaration_init
@@ -474,47 +480,6 @@ class BasedParser(Parser):
     def value(self, p):
         return p.CHAR_VALUE
 
-    @_("LBRACE new_scope statements pop_scope RBRACE")
-    def scope(self,p):
-        return f"{p.LBRACE}{p.statements}{p.pop_scope}{p.RBRACE}"
-
-    @_('')
-    def new_scope(self,p):
-        newScope = []
-        newArrayScope = []
-        self.scopesList.append(newScope)
-        self.arrayScopeList.append(newArrayScope)
-
-    @_('')
-    def pop_scope(self,p):
-        s = f""
-        for i in self.arrayScopeList[-1]:
-            s += f"free({i[0]}.value);\n"
-        self.scopesList.pop()
-        self.arrayScopeList.pop()
-        return s
-
-    @_("WHILE LPAREN expression RPAREN scope")
-    def while_statement(self,p):
-        return f"{p.WHILE}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}"
-
-    @_("FOR LPAREN for_component END expression END for_component RPAREN scope")
-    def for_statement(self,p):
-        return f"{p.FOR}{p.LPAREN}{p.for_component0}{p.expression}{p.END}{p.for_component1}{p.RPAREN}{p.scope}"
-
-    @_("IF LPAREN expression RPAREN scope else_statement")
-    def if_statement(self,p):
-        return f"{p.IF}{p.LPAREN}{p.expression}{p.RPAREN}{p.scope}{p.else_statement}"
-    @_("ELSE scope")
-    def else_statement(self,p):
-        return f"{p.ELSE}{p.scope}" 
-    @_("ELSE if_statement")
-    def else_statement(self,p):
-        return f"{p.ELSE} {p.if_statement}"
-    @_("")
-    def else_statement(self,p):
-        return f""
-    
     @_("STRING_VALUE")
     def value(self, p):
         return p.STRING_VALUE

@@ -2,13 +2,18 @@
 main():i16{
     my_fn(2+2, 1231234);
     if (1 < 2 && 2 < 3 && 3 < 4) {}
-    i32 x = 10;
+    let x:i32 = 10;
     while (2<3) {}
-    for(; true; 2) {
-        char new_var = 'c';
+    for(; true; let z:i32 = 7) {
+        let new_var:char = 'c';
+        let new_var:char = 'c';
     }
 
     let abracadabra[50]:char;
+    {
+        let abracadabra[50]:char;
+        let abracadabra[50]:char;
+    }
     let mama:bool;
 }
 
