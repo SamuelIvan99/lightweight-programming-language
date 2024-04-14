@@ -99,7 +99,7 @@ multi_array_init        : COMMA value multi_array_init | Ɛ
 scalar_assignment       : ID ASSIGN expression
 array_assignment        : ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
 
-insertion_statement     : ID INSERTION expression multi_insertion | Ɛ
+insertion_statement     : expression INSERTION expression multi_insertion
 multi_insertion         : INSERTION expression multi_insertion | Ɛ
 
 expression              : ID LSBRACKET arithmetic_layer RSBRACKET | expression AND comparison_layer | expression OR comparison_layer | comparison_layer

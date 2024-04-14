@@ -1,10 +1,7 @@
 #ifndef ARRAY_H
 #define ARRAY_H
 
-#include <stdlib.h>
-#include <stdio.h>
-
-typedef struct{
+typedef struct {
     void *value;
     int size;
 } Array;

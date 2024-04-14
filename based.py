@@ -50,7 +50,7 @@ class BasedLexer(Lexer):
     FLOAT_TYPE    = r"f64|f32"
     BOOL_TYPE     = r"bool"
     CHAR_TYPE     = r"char"
-    STRING_TYPE   = r"str"
+    STRING_TYPE   = r"\bstr\b"
     ABYSS_TYPE    = r"abyss"
 
     INTEGRAL_VALUE = r"-?\d+"
@@ -470,12 +470,9 @@ class BasedParser(Parser):
     #endregion
 
     #region insertion
-    @_("ID INSERTION expression multi_insertion")
+    @_("expression INSERTION expression multi_insertion")
     def insertion_statement(self, p):
-        return f"{p.ID}<<{p.expression}{p.multi_insertion}"
-    @_("")
-    def insertion_statement(self, p):
-        return ""
+        return f"write({p.expression0},{p.expression1})"
     @_("INSERTION expression multi_insertion")
     def multi_insertion(self, p):
         return f"<<{p.expression}{p.multi_insertion}"

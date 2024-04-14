@@ -1,7 +1,18 @@
 include <stdio.h>
 
-use "helper.based"
+include "array.h"
+include "array.c"
+
+include "stream.h"
+include "stream.c"
+
 
 main():i16 {
 	let x:i16 = 0;
+	let y[10]:i8 = {0, 1, 2, 3};
+
+	for (let i:i8 = 0; i < 10; i = i + 1) {
+		stream_writer("example.txt") << "Helloooooo\n";
+	}
 }
+

@@ -1,4 +1,6 @@
 #include "array.h"
+#include <stdio.h>
+#include <stdlib.h>
 
 void *getElement(Array x, int pos){
     if(pos >= x.size){
