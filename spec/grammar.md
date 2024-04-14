@@ -75,7 +75,7 @@ multi_actual_params     : COMMA expression multi_actual_params | Ɛ
 scope                   : LBRACE statements RBRACE
 
 statements              : statement statements | Ɛ
-statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | return_statement END | insertion END | END
+statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | return_statement END | insertion_statement END | END
 
 for_init                : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
 for_condition           : expression | Ɛ
@@ -99,8 +99,8 @@ multi_array_init        : COMMA value multi_array_init | Ɛ
 scalar_assignment       : ID ASSIGN expression
 array_assignment        : ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
 
-insertion               : ID INSERTION expression multi_insertions | Ɛ
-multi_insertion         : INSERTION expression multi_insertions | Ɛ
+insertion_statement     : ID INSERTION expression multi_insertion | Ɛ
+multi_insertion         : INSERTION expression multi_insertion | Ɛ
 
 expression              : ID LSBRACKET arithmetic_layer RSBRACKET | expression AND comparison_layer | expression OR comparison_layer | comparison_layer
 comparison_layer        : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer

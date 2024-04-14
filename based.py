@@ -272,6 +272,9 @@ class BasedParser(Parser):
     @_("return_statement")
     def statement(self, p):
         return f"{p.return_statement}"
+    @_("insertion_statement END")
+    def statement(self, p):
+        return f"{p.insertion_statement};"
     @_("END")
     def statement(self, p):
         return ";"
@@ -464,6 +467,21 @@ class BasedParser(Parser):
 
         _, mapping = result
         return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]={p.expression}"
+    #endregion
+
+    #region insertion
+    @_("ID INSERTION expression multi_insertion")
+    def insertion_statement(self, p):
+        return f"{p.ID}<<{p.expression}{p.multi_insertion}"
+    @_("")
+    def insertion_statement(self, p):
+        return ""
+    @_("INSERTION expression multi_insertion")
+    def multi_insertion(self, p):
+        return f"<<{p.expression}{p.multi_insertion}"
+    @_("")
+    def multi_insertion(self, p):
+        return ""
     #endregion
 
     #region expression
