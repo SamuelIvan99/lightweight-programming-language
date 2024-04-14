@@ -1,13 +1,4 @@
-#ifndef ARRAY_H
-#define ARRAY_H
-
-#include <stdlib.h>
-#include <stdio.h>
-
-typedef struct{
-    void *value;
-    int size;
-} Array;
+#include "array.h"
 
 void *getElement(Array x, int pos){
     if(pos >= x.size){
@@ -16,5 +7,3 @@ void *getElement(Array x, int pos){
     }
     return x.value;
 }
-
-#endif

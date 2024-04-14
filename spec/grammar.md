@@ -9,7 +9,6 @@ CHAR_TYPE     : char
 STRING_TYPE   : str
 ABYSS_TYPE    : abyss
 
-
 type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | STRING_TYPE | ABYSS_TYPE
 
 INTEGRAL_VALUE : -?\d+
@@ -25,6 +24,7 @@ FOR     : for
 IF      : if
 ELSE    : else
 DECLARE : let
+RETURN  : return
 
 AND            : &&
 OR             : ||
@@ -54,17 +54,17 @@ COMMA       : ,
 # Syntactical Grammar
 
 ```
-program : globals
+program                 : globals
 
-globals : global globals | Ɛ
-global  : function | include
+globals                 : global globals | Ɛ
+global                  : function | include
 
-include : USEC STRING_VALUE | USE STRING_VALUE
+include                 : USEC STRING_VALUE | USE STRING_VALUE
 
 functions               : function functions | Ɛ
 function                : ID LPAREN formal_params RPAREN COLON type scope
 
-formal_params           : ID COLON type multi_formal_params | ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
+formal_params           : ID COLON type multi_formal_params | ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params | Ɛ
 multi_formal_params     : COMMA ID COLON type multi_formal_params | COMMA ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params  | Ɛ
 
 function_call           : ID LPAREN actual_params RPAREN
@@ -75,7 +75,7 @@ multi_actual_params     : COMMA expression multi_actual_params | Ɛ
 scope                   : LBRACE statements RBRACE
 
 statements              : statement statements | Ɛ
-statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | END
+statement               : expression END | scalar_declaration END | array_declaration END | scalar_declaration_init END | array_declaration_init END | scalar_assignment END | array_assignment END | scope | while_statement | for_statement | if_statement | return_statement END | insertion END | END
 
 for_init                : scalar_declaration_init | scalar_assignment | array_declaration_init | array_assignment | expression | Ɛ
 for_condition           : expression | Ɛ
@@ -86,17 +86,21 @@ while_statement         : WHILE LPAREN expression RPAREN scope
 if_statement            : IF LPAREN expression RPAREN scope else_statement
 else_statement          : ELSE scope | ELSE if_statement | Ɛ
 
+return_statement        : RETURN expression
+
 scalar_declaration      : DECLARE ID COLON type
 array_declaration       : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type
 
 scalar_declaration_init : DECLARE ID COLON type ASSIGN expression
-array_declaration_init  : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON ASSIGN expression
+array_declaration_init  : DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type ASSIGN array_init | DECLARE ID LSBRACKET RSBRACKET COLON type ASSIGN array_init
+array_init              : LBRACE value multi_array_init RBRACE
+multi_array_init        : COMMA value multi_array_init | Ɛ
 
 scalar_assignment       : ID ASSIGN expression
 array_assignment        : ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression
 
-insertions              : ID INSERTION expression multi_insertions | Ɛ
-multi_insertions        : INSERTION expression multi_insertions | Ɛ
+insertion               : ID INSERTION expression multi_insertions | Ɛ
+multi_insertion         : INSERTION expression multi_insertions | Ɛ
 
 expression              : ID LSBRACKET arithmetic_layer RSBRACKET | expression AND comparison_layer | expression OR comparison_layer | comparison_layer
 comparison_layer        : comparison_layer COMPARATOR arithmetic_layer | arithmetic_layer

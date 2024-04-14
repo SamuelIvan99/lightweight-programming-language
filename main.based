@@ -1,0 +1,7 @@
+include <stdio.h>
+
+use "helper.based"
+
+main():i16 {
+	let x:i16 = 0;
+}

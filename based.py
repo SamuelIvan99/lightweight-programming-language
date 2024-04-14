@@ -1,6 +1,8 @@
 from sly import Lexer, Parser
+
 import os
 import subprocess
+import argparse
 
 class Bindings:
     def __init__(self):
@@ -41,7 +43,7 @@ class BasedLexer(Lexer):
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
                ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, USEC, USE }
+               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, INCLUDE, USE, RETURN, SYSTEM_VALUE }
 
     SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
     UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
@@ -56,15 +58,17 @@ class BasedLexer(Lexer):
     BOOL_VALUE     = r"true|false"
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
+    SYSTEM_VALUE   = r"<[^\"]*>"
 
     WHILE    = r"while"
     FOR      = r"for"
     IF       = r"if"
     ELSE     = r"else"
     DECLARE  = r"let"
+    RETURN   = r"return"
 
-    USEC  = r"usec"
-    USE   = r"use"
+    INCLUDE  = r"include"
+    USE      = r"use"
 
     AND            = r"\&\&"
     OR             = r"\|\|"
@@ -107,14 +111,16 @@ class BasedParser(Parser):
         self.scalar_bindings = Bindings()
         self.array_bindings = Bindings()
 
-        self.lexer = BasedLexer()
-        self.result = ""
+
+        self.based_includes = set()
+
+    #region program
+    @_("globals")
+    def program(self, p): 
+        return f"{p.globals}"
+    #endregion
 
     #region globals
-    @_("globals")
-    def program(self, p):
-        return f"{p.globals}"
-
     @_("globall globals")
     def globals(self, p):
         return f"{p.globall}{p.globals}"
@@ -127,46 +133,64 @@ class BasedParser(Parser):
     @_("include")
     def globall(self, p):
         return f"{p.include}"
-    #end region
+    #endregion
 
     #region includes
-    @_("USEC STRING_VALUE")
+    @_("INCLUDE STRING_VALUE")
     def include(self, p):
-        return f"#include {p.STRING_VALUE}\n\n"
+        return f"#include {p.STRING_VALUE}\n"
+    @_("INCLUDE SYSTEM_VALUE")
+    def include(self, p):
+        return f"#include {p.SYSTEM_VALUE}\n"
     @_("USE STRING_VALUE")
     def include(self, p):
-        file = str(p.STRING_VALUE).replace('\"','')
-        with open(file) as based_file:
-            program = based_file.read()
-            tokens = self.lexer.tokenize(program)
-            self.result += self.parse(tokens)
-        return ""
-    #end region
+        based_file_name = p.STRING_VALUE.replace("\"", "")
+        self.based_includes.add(based_file_name)
+        based_file_name = based_file_name.replace(".based", ".c")
+        return f"#include \"{based_file_name}\"\n"
+    #endregion
 
     #region function
-    @_("ID LPAREN formal_params RPAREN COLON type scope")
+    @_("ID LPAREN new_scope formal_params RPAREN COLON type LBRACE statements pop_scope RBRACE")
     def function(self, p):
         _, mapping, _, _, _ = p.type
-        return f"{mapping} {p.ID}({p.formal_params}){p.scope}" 
+        return f"{mapping} {p.ID}({p.formal_params}){{{p.statements}{p.pop_scope}}}"
     @_("ID COLON type multi_formal_params")
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
+        self.scalar_bindings.bind(p.ID, mapping)
+
         return f"{mapping} {p.ID}{p.multi_formal_params}"
     @_("ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params")
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
-        return f"{mapping} {p.ID}[{p.INTEGRAL_VALUE}]{p.multi_formal_params}"
+        self.array_bindings.bind(p.ID, mapping)
+
+        return f"Array {p.ID}{p.multi_formal_params}"
+    @_("ID LSBRACKET RSBRACKET COLON type multi_formal_params")
+    def formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        self.array_bindings.bind(p.ID, mapping)
+
+        return f"Array {p.ID}{p.multi_formal_params}"
     @_("")
     def formal_params(self, p):
         return ""
     @_("COMMA ID COLON type multi_formal_params")
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
+        self.scalar_bindings.bind(p.ID, mapping)
         return f", {mapping} {p.ID}{p.multi_formal_params}"
     @_("COMMA ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type multi_formal_params")
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
-        return f", {mapping} {p.ID}[{p.INTEGRAL_VALUE}]{p.multi_formal_params}"
+        self.array_bindings.bind(p.ID, mapping)
+        return f", Array {p.ID}{p.multi_formal_params}"
+    @_("COMMA ID LSBRACKET RSBRACKET COLON type multi_formal_params")
+    def multi_formal_params(self, p):
+        _, mapping, _, _, _ = p.type
+        self.array_bindings.bind(p.ID, mapping)
+        return f", Array {p.ID}{p.multi_formal_params}"
     @_("")
     def multi_formal_params(self, p):
         return ""
@@ -245,6 +269,9 @@ class BasedParser(Parser):
     @_("if_statement")
     def statement(self, p):
         return f"{p.if_statement}"
+    @_("return_statement")
+    def statement(self, p):
+        return f"{p.return_statement}"
     @_("END")
     def statement(self, p):
         return ";"
@@ -313,10 +340,17 @@ class BasedParser(Parser):
         return ""
     #endregion
 
+    #region returnstatement
+    @_("RETURN expression END")
+    def return_statement(self, p):
+        return f"return {p.expression};"
+    #endregion
+
     #region declaration
     @_("DECLARE ID COLON type")
     def scalar_declaration(self, p):
-        if self.scalar_bindings.lookup(p.ID):
+        if self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
@@ -325,7 +359,8 @@ class BasedParser(Parser):
         return f"{mapping} {p.ID}"
     @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type")
     def array_declaration(self, p):
-        if self.array_bindings.lookup(p.ID):
+        if self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
@@ -338,7 +373,8 @@ class BasedParser(Parser):
     #region declaration_init
     @_("DECLARE ID COLON type ASSIGN expression")
     def scalar_declaration_init(self, p):
-        if self.scalar_bindings.lookup(p.ID):
+        if self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID):
             print(f"ERROR: variable '{p.ID}' already defined in scope")
             exit(1)
 
@@ -348,23 +384,80 @@ class BasedParser(Parser):
             return f"{mapping} {p.ID}[]={p.expression}"
         else:
             return f"{mapping} {p.ID}={p.expression}"
-    @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON ASSIGN expression") 
+    @_("DECLARE ID LSBRACKET INTEGRAL_VALUE RSBRACKET COLON type ASSIGN array_init")
     def array_declaration_init(self, p):
-        raise NotImplementedError()
+        if self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID):
+            print(f"ERROR: variable '{p.ID}' already defined in scope")
+            exit(1)
+
+        _, mapping, _, _, _ = p.type
+        self.array_bindings.bind(p.ID, mapping)
+
+        values = p.array_init
+
+        array_declaration = f"""
+            Array {p.ID} = 
+            {{
+                .value = malloc(sizeof({mapping})*{p.INTEGRAL_VALUE}),
+                .size = {p.INTEGRAL_VALUE}
+            }};
+        """
+        array_init = ";".join([
+            f"(({mapping}*)getElement({p.ID},{i}))[{i}]={values[i]}"
+            for i in range(len(values))
+        ])
+
+        return f"{array_declaration}{array_init}"
+    @_("DECLARE ID LSBRACKET RSBRACKET COLON type ASSIGN array_init")
+    def array_declaration_init(self, p):
+        if self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID):
+            print(f"ERROR: variable '{p.ID}' already defined in scope")
+            exit(1)
+
+        _, mapping, _, _, _ = p.type
+        self.array_bindings.bind(p.ID, mapping)
+
+        values = p.array_init
+
+        array_declaration = f"""
+            Array {p.ID} = 
+            {{
+                .value = malloc(sizeof({mapping})*{len(values)}),
+                .size = {len(values)}
+            }};
+        """
+        array_init = ";".join([
+            f"(({mapping}*)getElement({p.ID},{i}))[{i}]={values[i]}"
+            for i in range(len(values))
+        ])
+
+        return f"{array_declaration}{array_init}"
+    @_("LBRACE value multi_array_init RBRACE")
+    def array_init(self, p):
+        return [p.value] + p.multi_array_init
+    @_("COMMA value multi_array_init")
+    def multi_array_init(self, p):
+        return [p.value] + p.multi_array_init
+    @_("")
+    def multi_array_init(self, p):
+        return []
     #endregion
 
     #region assignment
     @_("ID ASSIGN expression")
     def scalar_assignment(self, p):
-        result = self.scalar_bindings.lookup(p.ID)
+        result = self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
-
         return f"{p.ID}={p.expression}"
     @_("ID LSBRACKET arithmetic_layer RSBRACKET ASSIGN expression")
     def array_assignment(self, p):
-        result = self.array_bindings.lookup(p.ID)
+        result = self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
@@ -418,7 +511,8 @@ class BasedParser(Parser):
         return f"{p.value}"
     @_("ID LSBRACKET arithmetic_layer RSBRACKET")
     def factor(self, p):
-        result = self.array_bindings.lookup(p.ID)
+        result = self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
@@ -427,7 +521,8 @@ class BasedParser(Parser):
         return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]"
     @_("ID")
     def factor(self, p):
-        result = self.scalar_bindings.lookup(p.ID)
+        result = self.scalar_bindings.lookup(p.ID) or \
+            self.array_bindings.lookup(p.ID)
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
@@ -535,35 +630,70 @@ class BasedParser(Parser):
         return value
     @_("CHAR_VALUE")
     def value(self, p):
-        return p.CHAR_VALUE
+        return f"{p.CHAR_VALUE}"
     @_("STRING_VALUE")
     def value(self, p):
-        return p.STRING_VALUE
+        return f"{p.STRING_VALUE}"
     #endregion
 
-def main():
-    # For transpiled C code
-    if not os.path.exists("dist"):
-        os.mkdir("dist")
-    if os.path.exists("dist/out.c"):
-        os.remove("dist/out.c")
+def compile_based(based_file_name, lexer, parser):
+    with open(based_file_name) as based_file:
+        program = based_file.read()
+        tokens = lexer.tokenize(program)
+        result = parser.parse(tokens)
 
+    c_file_name = based_file_name.replace(".based", ".c")
+    c_file_name = f"dist/{c_file_name}"
+    if os.path.exists(c_file_name):
+        os.remove(c_file_name)
+
+    with open(c_file_name, "a") as c_file:
+        c_file.write(result)
+
+    subprocess.run(["clang-format", "-i", c_file_name])
+
+    if (len(parser.based_includes) > 0):
+        based_include_name = parser.based_includes.pop()
+        compile_based(based_include_name, lexer, parser)
+    return c_file_name
+
+def parse_args():
+    parser = argparse.ArgumentParser(prog="BasedCompiler",
+        description="Compile your based source code into native machine code", epilog="") 
+    parser.add_argument("-b", "--based-source", required=True, nargs="+", help="Based source files to compile")
+    parser.add_argument("-c", "--c-source", nargs="+", help="C source files to compile")
+    parser.add_argument("-I", "--include", help="C header files to include")
+    parser.add_argument("-o", "--output", required=True, help="Output executable")
+    return parser.parse_args()
+
+def main():
+    args = parse_args()
     # For compiled machine code
     if not os.path.exists("bin"):
         os.mkdir("bin")
 
-    parser = BasedParser()
-    outputCode = ""
-    with open("test.based") as based_file:
-        program = based_file.read()
-        tokens = parser.lexer.tokenize(program)
-        result = parser.parse(tokens)
-        outputCode = parser.result + result
+    # For transpiled C code        
+    if not os.path.exists("dist"):
+        os.mkdir("dist")
 
-    with open("dist/out.c", "a") as c_file:
-        c_file.write(f"{outputCode}")
-    subprocess.run(["clang-format", "-i", "dist/out.c"])
-    os.system("gcc dist/out.c -o bin/based")
+    lexer = BasedLexer()
+    parser = BasedParser()
+
+    based_compiled_names = [
+        compile_based(based_file_name, lexer, parser) 
+        for based_file_name in args.based_source
+    ]
+    based_compiled_names = " ".join(based_compiled_names)
+
+    c_source_names = ""
+    if args.c_source:
+        c_source_names = " ".join(args.c_source)
+
+    c_include_names = ""
+    if args.include:
+        c_include_names = f"-I{args.include}"
+
+    os.system(f"gcc {based_compiled_names} {c_source_names} -o {args.output} {c_include_names}")
 
 if __name__ == "__main__":
     main()
