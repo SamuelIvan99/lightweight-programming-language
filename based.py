@@ -266,9 +266,9 @@ class BasedParser(Parser):
     @_("if_statement")
     def statement(self, p):
         return f"{p.if_statement}"
-    @_("return_statement")
+    @_("return_statement END")
     def statement(self, p):
-        return f"{p.return_statement}"
+        return f"{p.return_statement};"
     @_("insertion_statement END")
     def statement(self, p):
         return f"{p.insertion_statement}"
@@ -341,9 +341,9 @@ class BasedParser(Parser):
     #endregion
 
     #region returnstatement
-    @_("RETURN expression END")
+    @_("RETURN expression")
     def return_statement(self, p):
-        return f"return {p.expression};"
+        return f"return {p.expression}"
     #endregion
 
     #region declaration
