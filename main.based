@@ -1,0 +1,25 @@
+include <stdio.h>
+
+include "array.h"
+include "array.c"
+
+include "file_stream.h"
+include "file_stream.c"
+
+
+use "helper.based"
+
+main():i16 {
+    let x:StreamWriter = file_writer("example.txt");
+    let buffer[10000]:char = "Hello, world";
+    // let y:i16 = 50;
+    // get int result from say_hello
+    // let result:i16 = say_hello();
+
+    // convert to int to char *
+    // sprintf(buffer, "%d", result);
+    // sprintf(buffer, "%d", y);
+
+    // write to file stream
+    x << buffer << "\n";
+}
