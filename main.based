@@ -3,16 +3,23 @@ include <stdio.h>
 include "array.h"
 include "array.c"
 
-include "stream.h"
-include "stream.c"
+include "file_stream.h"
+include "file_stream.c"
 
+
+use "helper.based"
 
 main():i16 {
-	let x:i16 = 0;
-	let y[10]:i8 = {0, 1, 2, 3};
+    let x:StreamWriter = file_writer("example.txt");
+    let buffer[10000]:char = "Hello, world";
+    // let y:i16 = 50;
+    // get int result from say_hello
+    // let result:i16 = say_hello();
 
-	for (let i:i8 = 0; i < 10; i = i + 1) {
-		stream_writer("example.txt") << "Helloooooo\n";
-	}
+    // convert to int to char *
+    // sprintf(buffer, "%d", result);
+    // sprintf(buffer, "%d", y);
+
+    // write to file stream
+    x << buffer << "\n";
 }
-

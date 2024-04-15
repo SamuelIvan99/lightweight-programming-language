@@ -1,0 +1,6 @@
+
+
+
+say_hello():i16 {
+	return 12345;
+}

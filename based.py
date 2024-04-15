@@ -45,30 +45,37 @@ class BasedLexer(Lexer):
                WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
                COLON, COMMA, DECLARE, INSERTION, EXTRACTION, INCLUDE, USE, RETURN, SYSTEM_VALUE }
 
-    SIGNED_TYPE   = r"i64|i32|i16|i8|isize"
-    UNSIGNED_TYPE = r"u64|u32|u16|u8|usize"
-    FLOAT_TYPE    = r"f64|f32"
-    BOOL_TYPE     = r"bool"
-    CHAR_TYPE     = r"char"
+    literals = {}
+
+    ignore = " \t"
+
+    ignore_comment = r"\/\/.*"
+    ignore_newline = r"\n+"
+
+    SIGNED_TYPE   = r"\bi64\b|\bi32\b|\bi16\b|\bi8\b|\bisize\b"
+    UNSIGNED_TYPE = r"\bu64\b|\bu32\b|\bu16\b|\bu8\b|\busize\b"
+    FLOAT_TYPE    = r"\bf64\b|\bf32\b"
+    BOOL_TYPE     = r"\bbool\b"
+    CHAR_TYPE     = r"\bchar\b"
     STRING_TYPE   = r"\bstr\b"
-    ABYSS_TYPE    = r"abyss"
+    ABYSS_TYPE    = r"\babyss\b"
 
     INTEGRAL_VALUE = r"-?\d+"
     FLOAT_VALUE    = r"-?\d+\.\d+"
-    BOOL_VALUE     = r"true|false"
+    BOOL_VALUE     = r"\btrue\b|\bfalse\b"
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
     SYSTEM_VALUE   = r"<[^\"]*>"
 
-    WHILE    = r"while"
-    FOR      = r"for"
-    IF       = r"if"
-    ELSE     = r"else"
-    DECLARE  = r"let"
-    RETURN   = r"return"
+    WHILE    = r"\bwhile\b"
+    FOR      = r"\bfor\b"
+    IF       = r"\bif\b"
+    ELSE     = r"\belse\b"
+    DECLARE  = r"\blet\b"
+    RETURN   = r"\breturn\b"
 
-    INCLUDE  = r"include"
-    USE      = r"use"
+    INCLUDE  = r"\binclude\b"
+    USE      = r"\buse\b"
 
     AND            = r"\&\&"
     OR             = r"\|\|"
@@ -77,7 +84,7 @@ class BasedLexer(Lexer):
     DIVISION       = r"\/"
     MULTIPLICATION = r"\*"
 
-    ID = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
+    ID             = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
 
     INSERTION   = r"<<"
     EXTRACTION  = r">>"
@@ -92,16 +99,6 @@ class BasedLexer(Lexer):
     RBRACE      = r"\}"
     COLON       = r"\:"
     COMMA       = r"\,"
-
-    literals = {}
-
-    ignore = " \t"
-
-    @_(r"\n+")
-    def ignore_newline(self, t):
-        pass
-
-    ignore_comment = r"#.*"
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
@@ -274,7 +271,7 @@ class BasedParser(Parser):
         return f"{p.return_statement}"
     @_("insertion_statement END")
     def statement(self, p):
-        return f"{p.insertion_statement};"
+        return f"{p.insertion_statement}"
     @_("END")
     def statement(self, p):
         return ";"
@@ -437,6 +434,11 @@ class BasedParser(Parser):
         ])
 
         return f"{array_declaration}{array_init}"
+    @_("STRING_VALUE")
+    def array_init(self, p):
+        result = p.STRING_VALUE.replace("\"", "")
+        result = [f"'{char}'" for char in result]
+        return list(result)
     @_("LBRACE value multi_array_init RBRACE")
     def array_init(self, p):
         return [p.value] + p.multi_array_init
@@ -472,13 +474,19 @@ class BasedParser(Parser):
     #region insertion
     @_("expression INSERTION expression multi_insertion")
     def insertion_statement(self, p):
-        return f"write({p.expression0},{p.expression1})"
+        return self.handle_insertions(p.expression0, p.expression1, p.multi_insertion)
     @_("INSERTION expression multi_insertion")
     def multi_insertion(self, p):
-        return f"<<{p.expression}{p.multi_insertion}"
+        return (p.expression, p.multi_insertion)
     @_("")
     def multi_insertion(self, p):
-        return ""
+        return ()
+    def handle_insertions(self, initial, current, remaining):
+        code = f"{initial}.write({initial}.writer, {current});"
+        if remaining:
+            next_expression, next_remaining = remaining
+            code += self.handle_insertions(initial, next_expression, next_remaining)
+        return code
     #endregion
 
     #region expression
@@ -536,13 +544,17 @@ class BasedParser(Parser):
         return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]"
     @_("ID")
     def factor(self, p):
-        result = self.scalar_bindings.lookup(p.ID) or \
-            self.array_bindings.lookup(p.ID)
+        scalar_result = self.scalar_bindings.lookup(p.ID)
+        array_result = self.array_bindings.lookup(p.ID)
+        result = scalar_result or array_result
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
 
-        return f"{p.ID}"
+        if scalar_result:
+            return f"{p.ID}"
+        elif array_result:
+            return f"{p.ID}.value"
     #endregion
 
     #region type
@@ -623,6 +635,15 @@ class BasedParser(Parser):
         return (
             p.ABYSS_TYPE,
             "void",
+            "0",
+            "0",
+            "0"
+        )
+    @_("ID")
+    def type(self, p):
+        return (
+            p.ID,
+            p.ID,
             "0",
             "0",
             "0"
