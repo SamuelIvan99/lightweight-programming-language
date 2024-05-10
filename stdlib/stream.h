@@ -3,7 +3,13 @@
 
 typedef struct {
     void *writer;
-    int (*write)(void *writer, const char *text);
+    int (*write)(void *writer,const char *text);
 } StreamWriter;
+
+typedef struct StreamReader{
+    void *reader;
+} StreamReader;
+
+
 
 #endif
