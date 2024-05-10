@@ -6,8 +6,9 @@
 
 typedef struct {
     FILE *file;
-} FileWriter;
+} File;
 
 StreamWriter file_writer(const char *file_name);
+StreamReader file_reader(const char *file_name);
 
 #endif

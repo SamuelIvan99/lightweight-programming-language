@@ -1,3 +1,5 @@
+#include <string.h>
+
 #define MAX_STRING_LENGTH 255
 
 /**
