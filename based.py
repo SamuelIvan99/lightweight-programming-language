@@ -272,6 +272,9 @@ class BasedParser(Parser):
     @_("insertion_statement END")
     def statement(self, p):
         return f"{p.insertion_statement}"
+    @_("extraction_statement END")
+    def statement(self, p):
+        return f"{p.extraction_statement}"
     @_("END")
     def statement(self, p):
         return ";"
@@ -367,7 +370,7 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
 
-        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=malloc(sizeof({mapping})*{p.ID}.size)"
+        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc(sizeof({mapping})*{p.ID}.size)"
     #endregion
 
     #region declaration_init
@@ -486,6 +489,24 @@ class BasedParser(Parser):
         if remaining:
             next_expression, next_remaining = remaining
             code += self.handle_insertions(initial, next_expression, next_remaining)
+        return code
+    #endregion
+
+    #region extraction
+    @_("expression EXTRACTION expression multi_extraction")
+    def extraction_statement(self, p):
+        return self.handle_extraction(p.expression0, p.expression1, p.multi_extraction)
+    @_("EXTRACTION expression multi_extraction")
+    def multi_extraction(self, p):
+        return (p.expression, p.multi_extraction)
+    @_("")
+    def multi_extraction(self, p):
+        return ()
+    def handle_extraction(self, initial, current, remaining):
+        code = f"{initial}.write({initial}.writer, {current});"
+        if remaining:
+            next_expression, next_remaining = remaining
+            code += self.handle_extraction(initial, next_expression, next_remaining)
         return code
     #endregion
 
