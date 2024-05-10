@@ -28,3 +28,7 @@ Refer to the [Documentation](./docs/) for detailed information on language synta
 ## License
 
 Based is licensed under the [MIT License](./LICENSE).
+
+
+
+python based.py -b main.based -c stdlib -o OUTPUT
