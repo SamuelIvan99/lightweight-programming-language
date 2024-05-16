@@ -370,7 +370,7 @@ class BasedParser(Parser):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
 
-        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc(sizeof({mapping})*{p.ID}.size)"
+        return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc({p.ID}.size ,sizeof({mapping}))"
     #endregion
 
     #region declaration_init
@@ -402,7 +402,7 @@ class BasedParser(Parser):
         array_declaration = f"""
             Array {p.ID} = 
             {{
-                .value = malloc(sizeof({mapping})*{p.INTEGRAL_VALUE}),
+                .value = calloc({p.ID}.size ,sizeof({mapping})),
                 .size = {p.INTEGRAL_VALUE}
             }};
         """
@@ -427,7 +427,7 @@ class BasedParser(Parser):
         array_declaration = f"""
             Array {p.ID} = 
             {{
-                .value = malloc(sizeof({mapping})*{len(values)}),
+                .value = calloc({p.ID}.size ,sizeof({mapping})),
                 .size = {len(values)}
             }};
         """
