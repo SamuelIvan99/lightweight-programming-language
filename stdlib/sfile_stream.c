@@ -14,7 +14,6 @@ int swrite(void *writer, const char *text) {
     for(int i = 0; text[i] != 0; ++i){
         new_msg[i] = text[i] - sum;
     }
-    printf("%d\n", sum);
     int res = fprintf(file_writer->file, "%s\n", new_msg);
     free(new_msg);
     return res;
