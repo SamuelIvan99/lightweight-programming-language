@@ -1,0 +1,26 @@
+include <stdio.h>
+
+include "../stdlib/array.h"
+include "../stdlib/array.c"
+
+include "../stdlib/file_stream.h"
+include "../stdlib/file_stream.c"
+
+include "../stdlib/sfile_stream.h"
+include "../stdlib/sfile_stream.c"
+
+main():i16 {
+
+    let max_size:int = 1000;
+
+    let writer:StreamWriter = file_writer("matrix_based.txt");
+    let buffer[10]:char;
+    
+    for(let i:int = 0; i < max_size ; i = i + 1){
+        for(let j:int = 0; j < max_size ; j = j + 1){
+            sprintf(buffer, "%d ", (i * max_size) + j);
+            writer << buffer;
+        }
+        writer << "\n";
+    }    
+}
