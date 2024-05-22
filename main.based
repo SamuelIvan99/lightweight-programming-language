@@ -1,0 +1,37 @@
+include <stdio.h>
+
+include "../stdlib/array.h"
+include "../stdlib/array.c"
+
+include "../stdlib/file_stream.h"
+include "../stdlib/file_stream.c"
+
+include "../stdlib/sfile_stream.h"
+include "../stdlib/sfile_stream.c"
+
+
+use "helper.based"
+
+main():i16 {
+    let x:StreamWriter = file_writer("example.txt");
+    let y:StreamWriter = sfile_writer("example1.txt");
+    let z:StreamReader = file_reader("example2.txt");
+    let p:StreamReader = sfile_reader("example1.txt");
+    set_pass("jajaja");
+    let a:str = "Hello world";
+    let b:str = "This is encripted.eeed";
+    // let y:i16 = 50;
+    // get int result from say_hello
+    // let result:i16 = say_hello();
+
+    // convert to int to char *
+    // sprintf(buffer, "%d", result);
+    // sprintf(buffer, "%d", y);
+
+    // write to file stream
+    x << a << "\n";
+    y << b;
+    x << read(z) << "\n";
+    x << read(p) << "\n";
+    x << sread(p) << "\n";
+}
