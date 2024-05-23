@@ -46,7 +46,7 @@ LSBRACKET   : [
 RSBRACKET   : ]
 LBRACE      : {
 RBRACE      : }
-COMMENT     : #
+COMMENT     : //
 COLON       : :
 COMMA       : ,
 ```
