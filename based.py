@@ -61,7 +61,7 @@ class BasedLexer(Lexer):
     ABYSS_TYPE    = r"\babyss\b"
 
     INTEGRAL_VALUE = r"-?\d+"
-    FLOAT_VALUE    = r"-?\d+\.\d+"
+    FLOAT_VALUE    = r"-?\d+(\.\d+)?"
     BOOL_VALUE     = r"\btrue\b|\bfalse\b"
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
