@@ -60,8 +60,8 @@ class BasedLexer(Lexer):
     STRING_TYPE   = r"\bstr\b"
     ABYSS_TYPE    = r"\babyss\b"
 
-    INTEGRAL_VALUE = r"-?\d+"
     FLOAT_VALUE    = r"-?\d+(\.\d+)?"
+    INTEGRAL_VALUE = r"-?\d+"
     BOOL_VALUE     = r"\btrue\b|\bfalse\b"
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
@@ -84,7 +84,7 @@ class BasedLexer(Lexer):
     DIVISION       = r"\/"
     MULTIPLICATION = r"\*"
 
-    ID             = r"[a-zA-Z_][a-zA-Z0-9_\-]*"
+    ID             = r"\b[a-zA-Z_][a-zA-Z0-9_\-]*\b"
 
     INSERTION   = r"<<"
     EXTRACTION  = r">>"
