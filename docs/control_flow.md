@@ -11,12 +11,12 @@ All if expressions start with the keyword if, followed by a condition. We place 
 Optionally, an else expression can be included, to give the program an alternative block of code to execute should the condition evaluate to false. If no else expression is provided and the condition is false, the program will just skip the if block and move on to the next bit of code.
 
 ```
-i32 temperature = 25;
+let temperature:i32 = 25;
 
 if (temperature > 30) {
-    // if block code
+    // turn ac on
 } else {
-    // else block code
+    // turn heater on
 }
 ```
 
@@ -41,9 +41,9 @@ while (condition) {
 Here, condition is a Boolean expression that is evaluated before each iteration of the loop. If the condition evaluates to true, the code block inside the loop is executed. Afterward, the condition is evaluated again, and if it's still true, the code block is executed again. This process continues until the condition becomes false, at which point the loop terminates, and the program moves on to the next section of code.
 
 ```
-var count = 0;
+let count:i32 = 0;
+
 while (count < 5) {
-    // code in while block
     count = count + 1;
 }
 ```

@@ -8,7 +8,7 @@ In Based, you can use comments like:
 
 ```
 // This is a single-line comment
-i32 x = 10; # This is also a single-line comment
+let x:i32 = 10; // This is also a single-line comment
 ```
 
 Comments are useful for explaining the purpose of variables, functions, or blocks of code, as well as for temporarily disabling code without deleting it. They contribute to code readability and maintainability by providing additional context and explanations.
