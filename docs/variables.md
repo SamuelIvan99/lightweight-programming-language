@@ -20,7 +20,7 @@ let height:f32 = 5.9;         // Float type variable
 ```
 
 ```
-let clothing:str[] = ["pants", "t-shirt", "beanie"]
+let clothing:str[] = ["pants", "t-shirt", "beanie"];
 ```
 
 ## Variable Scope
@@ -44,7 +44,7 @@ changeGlobalVar():i32 {
 Variables declared within a function or block have local scope and can only be accessed within that function or block.
 
 ```
-exampleFunction(): abyss {
+exampleFunction():abyss {
     let localVar:i32 = 0;
     localVar = 5;  // Accessible here
 }
