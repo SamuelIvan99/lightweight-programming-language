@@ -14,9 +14,9 @@ Optionally, an else expression can be included, to give the program an alternati
 i32 temperature = 25;
 
 if (temperature > 30) {
-    # if block code
+    // if block code
 } else {
-    # else block code
+    // else block code
 }
 ```
 
@@ -34,7 +34,7 @@ A while loop repeatedly executes a block of code as long as a specified conditio
 
 ```
 while (condition) {
-    # code block to be executed
+    // code block to be executed
 }
 ```
 
@@ -43,7 +43,7 @@ Here, condition is a Boolean expression that is evaluated before each iteration 
 ```
 var count = 0;
 while (count < 5) {
-    # code in while block
+    // code in while block
     count = count + 1;
 }
 ```
