@@ -60,8 +60,8 @@ class BasedLexer(Lexer):
     STRING_TYPE   = r"\bstr\b"
     ABYSS_TYPE    = r"\babyss\b"
 
-    FLOAT_VALUE    = r"-?\d+(\.\d+)?"
-    INTEGRAL_VALUE = r"-?\d+"
+    INTEGRAL_VALUE = r"-?\b\d+(?!\.)\b"
+    FLOAT_VALUE    = r"-?\b\d+(\.\d+)?\b"
     BOOL_VALUE     = r"\btrue\b|\bfalse\b"
     CHAR_VALUE     = r"\'.\'"
     STRING_VALUE   = r"\"[^\"]*\""
@@ -130,6 +130,9 @@ class BasedParser(Parser):
     @_("include")
     def globall(self, p):
         return f"{p.include}"
+    @_("scalar_declaration_init END")
+    def globall(self, p):
+        return f"{p.scalar_declaration_init};"
     #endregion
 
     #region includes

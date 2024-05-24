@@ -11,8 +11,8 @@ ABYSS_TYPE    : abyss
 
 type          : SIGNED_TYPE | UNSIGNED_TYPE | FLOAT_TYPE | BOOL_TYPE | CHAR_TYPE | STRING_TYPE | ABYSS_TYPE
 
-INTEGRAL_VALUE : -?\d+
-FLOAT_VALUE    : -?\d+(\.\d+)?
+INTEGRAL_VALUE : -?\b\d+(?!\.)\b
+FLOAT_VALUE    : -?\b\d+(\.\d+)?\b
 BOOL_VALUE     : true | false
 CHAR_VALUE     : \'.\'
 STRING_VALUE   : \"[^\"]*\"
@@ -57,7 +57,7 @@ COMMA       : ,
 program                 : globals
 
 globals                 : global globals | Ɛ
-global                  : function | include
+global                  : function | include | scalar_declaration_init END
 
 include                 : USEC STRING_VALUE | USE STRING_VALUE
 
