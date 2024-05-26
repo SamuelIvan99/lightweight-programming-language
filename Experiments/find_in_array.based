@@ -1,0 +1,66 @@
+include <stdio.h>
+
+include "../stdlib/array.h"
+include "../stdlib/array.c"
+
+include "../stdlib/file_stream.h"
+include "../stdlib/file_stream.c"
+
+include "../stdlib/sfile_stream.h"
+include "../stdlib/sfile_stream.c"
+
+include "../stdlib/generate_random.h"
+
+main():i16 {
+
+    let max_size:int = 10000000;
+
+    set_random(10);
+
+    let writer:StreamWriter = file_writer("Texts/find_in_array.txt");
+    let buffer[15]:char;
+
+    let arrayS[10000000]:int;
+
+    for(let i:int = 0; i < max_size ; i = i + 1){
+        arrayS[i] = generate_random(10000);
+    }
+    
+    let min:int = 10001;
+    let max:int = 0;
+
+    let nums[2]:int;
+
+    for(let i:int = 0; i < max_size; i = i + 1){
+        if(arrayS[i] < min){
+            min = arrayS[i];
+        }
+        if(max < arrayS[i]){
+            max = arrayS[i];
+        }
+    }
+
+    for(let i:int = 0; i < max_size; i = i + 1){
+        if(arrayS[i] == min){
+            nums[0] = nums[0] + 1;
+        }
+        if(arrayS[i] == max ){
+            nums[1] = nums[1] + 1;
+        }
+    }
+    sprintf(buffer, "%d \n", min);
+    writer << "Min element is: " << buffer;
+    sprintf(buffer, "%d ", nums[0]);
+    writer << "Min element found: " << buffer << "times\n";
+    sprintf(buffer, "%d \n", max);
+    writer << "Max element is: " << buffer;
+    sprintf(buffer, "%d ", nums[1]);
+    writer << "Max element found: " << buffer << "times\n";
+    writer << "\n\n\n\n";
+    writer << "Full Array: \n";
+
+    for(let i:int = 0; i < max_size ; i = i + 1){
+        sprintf(buffer, "%d \n", arrayS[i]);
+        writer << buffer;
+    } 
+}
