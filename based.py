@@ -522,7 +522,7 @@ class BasedParser(Parser):
         return f"{p.expression}{p.OR}{p.comparison_layer}" 
     @_("comparison_layer")
     def expression(self, p):
-        return f"{p.comparison_layer}" 
+        return f"{p.comparison_layer}"
     @_("comparison_layer COMPARATOR arithmetic_layer")
     def comparison_layer(self, p):
         return f"{p.comparison_layer}{p.COMPARATOR}{p.arithmetic_layer}"
