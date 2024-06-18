@@ -43,7 +43,7 @@ class BasedLexer(Lexer):
                INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
                ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
                WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, INCLUDE, USE, RETURN, SYSTEM_VALUE }
+               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, USE, RETURN, SYSTEM_VALUE }
 
     literals = {}
 
@@ -74,7 +74,6 @@ class BasedLexer(Lexer):
     DECLARE  = r"\blet\b"
     RETURN   = r"\breturn\b"
 
-    INCLUDE  = r"\binclude\b"
     USE      = r"\buse\b"
 
     AND            = r"\&\&"
@@ -102,14 +101,14 @@ class BasedLexer(Lexer):
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
-    debugfile = "dist/debug"
+    # debugfile = "dist/debug"
 
     def __init__(self):
         self.scalar_bindings = Bindings()
         self.array_bindings = Bindings()
 
-
         self.based_includes = set()
+        self.using_arrays = False
 
     #region program
     @_("globals")
@@ -121,9 +120,9 @@ class BasedParser(Parser):
     @_("globall globals")
     def globals(self, p):
         return f"{p.globall}{p.globals}"
-    @_("")
+    @_("globall")
     def globals(self, p):
-        return ""
+        return f"{p.globall}"
     @_("function")
     def globall(self, p):
         return f"{p.function}"
@@ -136,18 +135,17 @@ class BasedParser(Parser):
     #endregion
 
     #region includes
-    @_("INCLUDE STRING_VALUE")
-    def include(self, p):
-        return f"#include {p.STRING_VALUE}\n"
-    @_("INCLUDE SYSTEM_VALUE")
+    @_("USE SYSTEM_VALUE")
     def include(self, p):
         return f"#include {p.SYSTEM_VALUE}\n"
     @_("USE STRING_VALUE")
     def include(self, p):
-        based_file_name = p.STRING_VALUE.replace("\"", "")
-        self.based_includes.add(based_file_name)
-        based_file_name = based_file_name.replace(".based", ".c")
-        return f"#include \"{based_file_name}\"\n"
+        file_name = p.STRING_VALUE.replace("\"", "")
+        root, extension = os.path.splitext(file_name)
+        if extension == ".based":
+            self.based_includes.add(file_name)
+            file_name = file_name.replace(".based", ".c")
+        return f"#include \"{file_name}\"\n"
     #endregion
 
     #region function
@@ -165,12 +163,14 @@ class BasedParser(Parser):
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
+        self.using_arrays = True
 
         return f"Array {p.ID}{p.multi_formal_params}"
     @_("ID LSBRACKET RSBRACKET COLON type multi_formal_params")
     def formal_params(self, p):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
+        self.using_arrays = True
 
         return f"Array {p.ID}{p.multi_formal_params}"
     @_("")
@@ -185,11 +185,13 @@ class BasedParser(Parser):
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
+        self.using_arrays = True
         return f", Array {p.ID}{p.multi_formal_params}"
     @_("COMMA ID LSBRACKET RSBRACKET COLON type multi_formal_params")
     def multi_formal_params(self, p):
         _, mapping, _, _, _ = p.type
         self.array_bindings.bind(p.ID, mapping)
+        self.using_arrays = True
         return f", Array {p.ID}{p.multi_formal_params}"
     @_("")
     def multi_formal_params(self, p):
@@ -244,18 +246,21 @@ class BasedParser(Parser):
         return f"{p.scalar_declaration};"
     @_("array_declaration END")
     def statement(self, p):
+        self.using_arrays = True
         return f"{p.array_declaration};"
     @_("scalar_declaration_init END")
     def statement(self, p):
         return f"{p.scalar_declaration_init};"
     @_("array_declaration_init END")
     def statement(self, p):
+        self.using_arrays = True
         return f"{p.array_declaration_init};"
     @_("scalar_assignment END")
     def statement(self, p):
         return f"{p.scalar_assignment};"
     @_("array_assignment END")
     def statement(self, p):
+        self.using_arrays = True
         return f"{p.array_assignment};"
     @_("scope")
     def statement(self, p):
@@ -292,9 +297,11 @@ class BasedParser(Parser):
         return f"{p.scalar_assignment}"
     @_("array_declaration_init")
     def for_init(self, p):
+        self.using_arrays = True
         return f"{p.array_declaration_init}"
     @_("array_assignment")
     def for_init(self, p):
+        self.using_arrays = True
         return f"{p.array_assignment}"
     @_("expression")
     def for_init(self, p):
@@ -313,6 +320,7 @@ class BasedParser(Parser):
         return f"{p.scalar_assignment}"
     @_("array_assignment")
     def for_increment(self, p):
+        self.using_arrays = True
         return f"{p.array_assignment}"
     @_("expression")
     def for_increment(self, p):
@@ -371,6 +379,7 @@ class BasedParser(Parser):
             exit(1)
 
         _, mapping, _, _, _ = p.type
+        self.using_arrays = True
         self.array_bindings.bind(p.ID, mapping)
 
         return f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc({p.ID}.size ,sizeof({mapping}))"
@@ -398,6 +407,7 @@ class BasedParser(Parser):
             exit(1)
 
         _, mapping, _, _, _ = p.type
+        self.using_arrays = True
         self.array_bindings.bind(p.ID, mapping)
 
         values = p.array_init
@@ -423,6 +433,7 @@ class BasedParser(Parser):
             exit(1)
 
         _, mapping, _, _, _ = p.type
+        self.using_arrays = True
         self.array_bindings.bind(p.ID, mapping)
 
         values = p.array_init
@@ -444,15 +455,19 @@ class BasedParser(Parser):
     def array_init(self, p):
         result = p.STRING_VALUE.replace("\"", "")
         result = [f"'{char}'" for char in result]
+        self.using_arrays = True
         return list(result)
     @_("LBRACE value multi_array_init RBRACE")
     def array_init(self, p):
+        self.using_arrays = True
         return [p.value] + p.multi_array_init
     @_("COMMA value multi_array_init")
     def multi_array_init(self, p):
+        self.using_arrays = True
         return [p.value] + p.multi_array_init
     @_("")
     def multi_array_init(self, p):
+        self.using_arrays = True
         return []
     #endregion
 
@@ -474,6 +489,7 @@ class BasedParser(Parser):
             exit(1)
 
         _, mapping = result
+        self.using_arrays = True
         return f"(({mapping}*)getElement({p.ID},{p.arithmetic_layer}))[{p.arithmetic_layer}]={p.expression}"
     #endregion
 
@@ -574,11 +590,7 @@ class BasedParser(Parser):
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
-
-        if scalar_result:
-            return f"{p.ID}"
-        elif array_result:
-            return f"{p.ID}.value"
+        return f"{p.ID}"
     #endregion
 
     #region type
@@ -696,6 +708,7 @@ class BasedParser(Parser):
         return f"{p.STRING_VALUE}"
     #endregion
 
+
 def compile_based(based_file_name, lexer, parser):
     with open(based_file_name) as based_file:
         program = based_file.read()
@@ -703,44 +716,41 @@ def compile_based(based_file_name, lexer, parser):
         result = parser.parse(tokens)
 
     c_file_name = based_file_name.replace(".based", ".c")
-    c_file_name = f"dist/{c_file_name}"
+    c_file_name = f"dist/{os.path.basename(c_file_name)}"
     if os.path.exists(c_file_name):
         os.remove(c_file_name)
 
     with open(c_file_name, "a") as c_file:
+        result = f"#include <array.h>\n#include <stdlib.h>\n{result}" if parser.using_arrays else result
         c_file.write(result)
 
     subprocess.run(["clang-format", "-i", c_file_name])
 
-    if (len(parser.based_includes) > 0):
+    if len(parser.based_includes) > 0:
         based_include_name = parser.based_includes.pop()
         compile_based(based_include_name, lexer, parser)
+
     return c_file_name
+
 
 def parse_args():
     parser = argparse.ArgumentParser(prog="BasedCompiler",
         description="Compile your based source code into native machine code", epilog="") 
     parser.add_argument("-b", "--based-source", required=True, nargs="+", help="Based source files to compile")
     parser.add_argument("-c", "--c-source", nargs="+", help="C source files to compile")
-    parser.add_argument("-I", "--include", help="C header files to include")
     parser.add_argument("-o", "--output", required=True, help="Output executable")
     return parser.parse_args()
 
+
 def main():
     args = parse_args()
-    # For compiled machine code
-    if not os.path.exists("bin"):
-        os.mkdir("bin")
-
-    # For transpiled C code        
     if not os.path.exists("dist"):
         os.mkdir("dist")
-
     lexer = BasedLexer()
     parser = BasedParser()
 
     based_compiled_names = [
-        compile_based(based_file_name, lexer, parser) 
+        compile_based(based_file_name, lexer, parser)
         for based_file_name in args.based_source
     ]
     based_compiled_names = " ".join(based_compiled_names)
@@ -749,11 +759,8 @@ def main():
     if args.c_source:
         c_source_names = " ".join(args.c_source)
 
-    c_include_names = ""
-    if args.include:
-        c_include_names = f"-I{args.include}"
+    os.system(f"gcc {based_compiled_names} {c_source_names} -o {args.output} -Iinclude -Llib -lbased")
 
-    os.system(f"gcc {based_compiled_names} {c_source_names} -o {args.output} {c_include_names}")
 
 if __name__ == "__main__":
     main()
