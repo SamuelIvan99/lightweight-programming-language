@@ -63,7 +63,7 @@ class BasedLexer(Lexer):
     INTEGRAL_VALUE = r"-?\b\d+(?!\.)\b"
     FLOAT_VALUE    = r"-?\b\d+(\.\d+)?\b"
     BOOL_VALUE     = r"\btrue\b|\bfalse\b"
-    CHAR_VALUE     = r"\'.\'"
+    CHAR_VALUE     = r"\'(.|\\0|\\n)\'"
     STRING_VALUE   = r"\"[^\"]*\""
     SYSTEM_VALUE   = r"<[^\"]*>"
 
