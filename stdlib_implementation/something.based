@@ -1,0 +1,5 @@
+use "./examples/helper.c";
+
+main():i8 {
+	return 0;
+}

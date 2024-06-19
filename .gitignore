@@ -1,6 +1,8 @@
-dist/*.c
 poetry.lock
 pyproject.toml
 __pycache__
-venv/
-bin/
+venv
+dist
+bin
+lib
+include

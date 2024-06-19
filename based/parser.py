@@ -1,103 +1,7 @@
-from sly import Lexer, Parser
-
+from sly import Parser
+from lexer import BasedLexer
+from bindings import Bindings
 import os
-import subprocess
-import argparse
-
-class Bindings:
-    def __init__(self):
-        self._stack = []
-
-    def bind(self, name, mapping):
-        self._stack.insert(0, (name, mapping))
-
-    def lookup(self, name_to_find):
-        scope_depth = []
-        for result in self._stack:
-            if result == "#":
-                scope_depth.append(True)
-            else:
-                name, mapping = result
-                if name == name_to_find:
-                    return name, mapping
-
-                if len(scope_depth) == self._stack.count("#"):
-                    break
-        return None
-
-    def enter(self):
-        self._stack.insert(0, "#")
-
-    def exit(self):
-        popped = []
-        while len(self._stack) > 0 and self._stack[0] != "#":
-            variable = self._stack.pop(0)
-            popped.append(variable)
-        if self._stack:
-            self._stack.pop(0)
-        return popped
-
-
-class BasedLexer(Lexer):
-    tokens = { SIGNED_TYPE, UNSIGNED_TYPE, FLOAT_TYPE, BOOL_TYPE, CHAR_TYPE, STRING_TYPE, ABYSS_TYPE,
-               INTEGRAL_VALUE, FLOAT_VALUE, BOOL_VALUE, CHAR_VALUE, STRING_VALUE, 
-               ID, ASSIGN, END, COMPARATOR, LBRACE, RBRACE, LPAREN, RPAREN, LSBRACKET, RSBRACKET,
-               WHILE, FOR, MINUS, PLUS, MULTIPLICATION, DIVISION, AND, OR, IF, ELSE,
-               COLON, COMMA, DECLARE, INSERTION, EXTRACTION, USE, RETURN, SYSTEM_VALUE }
-
-    literals = {}
-
-    ignore = " \t"
-
-    ignore_comment = r"\/\/.*"
-    ignore_newline = r"\n+"
-
-    SIGNED_TYPE   = r"\bi64\b|\bi32\b|\bi16\b|\bi8\b|\bisize\b"
-    UNSIGNED_TYPE = r"\bu64\b|\bu32\b|\bu16\b|\bu8\b|\busize\b"
-    FLOAT_TYPE    = r"\bf64\b|\bf32\b"
-    BOOL_TYPE     = r"\bbool\b"
-    CHAR_TYPE     = r"\bchar\b"
-    STRING_TYPE   = r"\bstr\b"
-    ABYSS_TYPE    = r"\babyss\b"
-
-    INTEGRAL_VALUE = r"-?\b\d+(?!\.)\b"
-    FLOAT_VALUE    = r"-?\b\d+(\.\d+)?\b"
-    BOOL_VALUE     = r"\btrue\b|\bfalse\b"
-    CHAR_VALUE     = r"\'(.|\\0|\\n)\'"
-    STRING_VALUE   = r"\"[^\"]*\""
-    SYSTEM_VALUE   = r"<[^\"]*>"
-
-    WHILE    = r"\bwhile\b"
-    FOR      = r"\bfor\b"
-    IF       = r"\bif\b"
-    ELSE     = r"\belse\b"
-    DECLARE  = r"\blet\b"
-    RETURN   = r"\breturn\b"
-
-    USE      = r"\buse\b"
-
-    AND            = r"\&\&"
-    OR             = r"\|\|"
-    MINUS          = r"\-"
-    PLUS           = r"\+"
-    DIVISION       = r"\/"
-    MULTIPLICATION = r"\*"
-
-    ID             = r"\b[a-zA-Z_][a-zA-Z0-9_\-]*\b"
-
-    INSERTION   = r"<<"
-    EXTRACTION  = r">>"
-    COMPARATOR  = r"==|!=|<=|>=|<|>"
-    ASSIGN      = r"="
-    END         = r";"
-    LPAREN      = r"\("
-    RPAREN      = r"\)"
-    LSBRACKET   = r"\["
-    RSBRACKET   = r"\]"
-    LBRACE      = r"\{"
-    RBRACE      = r"\}"
-    COLON       = r"\:"
-    COMMA       = r"\,"
 
 class BasedParser(Parser):
     tokens = BasedLexer.tokens
@@ -108,6 +12,7 @@ class BasedParser(Parser):
         self.array_bindings = Bindings()
 
         self.based_includes = set()
+        self.c_includes = set()
         self.using_arrays = False
 
     #region program
@@ -144,7 +49,8 @@ class BasedParser(Parser):
         root, extension = os.path.splitext(file_name)
         if extension == ".based":
             self.based_includes.add(file_name)
-            file_name = file_name.replace(".based", ".c")
+        elif extension == ".c":
+            self.c_includes.add(file_name)
         return f"#include \"{file_name}\"\n"
     #endregion
 
@@ -707,60 +613,3 @@ class BasedParser(Parser):
     def value(self, p):
         return f"{p.STRING_VALUE}"
     #endregion
-
-
-def compile_based(based_file_name, lexer, parser):
-    with open(based_file_name) as based_file:
-        program = based_file.read()
-        tokens = lexer.tokenize(program)
-        result = parser.parse(tokens)
-
-    c_file_name = based_file_name.replace(".based", ".c")
-    c_file_name = f"dist/{os.path.basename(c_file_name)}"
-    if os.path.exists(c_file_name):
-        os.remove(c_file_name)
-
-    with open(c_file_name, "a") as c_file:
-        result = f"#include <array.h>\n#include <stdlib.h>\n{result}" if parser.using_arrays else result
-        c_file.write(result)
-
-    subprocess.run(["clang-format", "-i", c_file_name])
-
-    if len(parser.based_includes) > 0:
-        based_include_name = parser.based_includes.pop()
-        compile_based(based_include_name, lexer, parser)
-
-    return c_file_name
-
-
-def parse_args():
-    parser = argparse.ArgumentParser(prog="BasedCompiler",
-        description="Compile your based source code into native machine code", epilog="") 
-    parser.add_argument("-b", "--based-source", required=True, nargs="+", help="Based source files to compile")
-    parser.add_argument("-c", "--c-source", nargs="+", help="C source files to compile")
-    parser.add_argument("-o", "--output", required=True, help="Output executable")
-    return parser.parse_args()
-
-
-def main():
-    args = parse_args()
-    if not os.path.exists("dist"):
-        os.mkdir("dist")
-    lexer = BasedLexer()
-    parser = BasedParser()
-
-    based_compiled_names = [
-        compile_based(based_file_name, lexer, parser)
-        for based_file_name in args.based_source
-    ]
-    based_compiled_names = " ".join(based_compiled_names)
-
-    c_source_names = ""
-    if args.c_source:
-        c_source_names = " ".join(args.c_source)
-
-    os.system(f"gcc {based_compiled_names} {c_source_names} -o {args.output} -Iinclude -Llib -lbased")
-
-
-if __name__ == "__main__":
-    main()
