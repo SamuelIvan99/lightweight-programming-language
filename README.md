@@ -4,6 +4,36 @@
 
 <h1 align="center">The Based programming language</h1>
 
+## Getting Started
+
+### Installation
+
+Start by installing the dependencies:
+```bash
+pip install -r requirements.txt
+```
+
+### Compiling
+
+While in the root directory of the project, you can run based as a python module
+```bash
+python based -h
+```
+Give based input files and an output path
+```bash
+python based program.based -o executable
+```
+Then run the executable
+```bash
+./executable
+```
+
+### Developing the Standard Library
+
+Put in your C and Headers in the ```stdlib_implementation``` directory,
+
+Running the based compiler with python will in turn compile all of your stdlib implementations and will link the final executable with a static library.
+
 Based is a programming language designed specifically for Internet of Things (IoT) applications. With its simplicity, efficiency, and focus on IoT-centric features, Based aims to streamline the development process for embedded systems and IoT devices.
 
 ## Features
@@ -17,12 +47,8 @@ Based is a programming language designed specifically for Internet of Things (Io
 - **Cross-platform**: Supports multiple hardware platforms and operating systems commonly used in IoT environments.
 -->
 
-## Getting Started
-
-### Installation
-TODO
-
 ### Explore Documentation
+
 Refer to the [Documentation](./docs/) for detailed information on language syntax, standard libraries, and best practices.
 
 ## License
