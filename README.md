@@ -34,9 +34,9 @@ Put in your C and Headers in the ```stdlib_implementation``` directory,
 
 Running the based compiler with python will in turn compile all of your stdlib implementations and will link the final executable with a static library.
 
-Based is a programming language designed specifically for Internet of Things (IoT) applications. With its simplicity, efficiency, and focus on IoT-centric features, Based aims to streamline the development process for embedded systems and IoT devices.
-
 ## Features
+
+Based is a programming language designed specifically for Internet of Things (IoT) applications. With its simplicity, efficiency, and focus on IoT-centric features, Based aims to streamline the development process for embedded systems and IoT devices.
 
 - **Simplicity**: Based prioritizes simplicity to enable rapid development of IoT applications without unnecessary complexities.
 - **Efficiency**: Designed to be lightweight and efficient, Based optimizes resource usage for IoT devices with constrained hardware.
