@@ -20,35 +20,40 @@ def check_files_exist(files):
 
 
 def compile_library():
-    stdlib_path = "stdlib_implementation"
-    lib_path = "lib"
-    include_path = "include"
+    stdlib_dir = "stdlib_implementation"
+    lib_dir = "lib"
+    include_dir = "include"
 
-    if not os.path.exists(stdlib_path):
-        print(f"Error: Directory '{stdlib_path}' does not exist. Put your C and Headers there.")
+    if not os.path.exists(stdlib_dir):
+        print(f"Error: Directory '{stdlib_dir}' does not exist. Put your C and Headers there.")
         sys.exit(1)
 
-    if os.path.exists(include_path):
-        remove_dir_contents(include_path)
+    if os.path.exists(include_dir):
+        remove_dir_contents(include_dir)
     else:
-        os.mkdir(include_path)
+        os.mkdir(include_dir)
 
-    if os.path.exists(lib_path):
-        remove_dir_contents(lib_path)
+    if os.path.exists(lib_dir):
+        remove_dir_contents(lib_dir)
     else:
-        os.mkdir(lib_path)
+        os.mkdir(lib_dir)
 
-    for file in os.listdir(stdlib_path):
+    for file in os.listdir(stdlib_dir):
         if file.endswith(".c"):
-            os.system(f"gcc -c {stdlib_path}/{file} -o {file.replace('.c', '.o')}")
+            c_path = os.path.join(stdlib_dir, file)
+            o_path = c_path.replace(".c", ".o")
+            os.system(f"gcc -c {c_path} -o {o_path}")
         elif file.endswith(".h"):
-            os.system(f"cp {stdlib_path}/{file} {include_path}")
+            h_path = os.path.join(stdlib_dir, file)
+            os.system(f"cp {h_path} {include_dir}")
 
-    os.system(f"ar rcs {lib_path}/libbased.a {stdlib_path}/*.o")
+    lib_path = os.path.join(lib_dir, "libbased.a")
+    os.system(f"ar rcs {lib_path} {stdlib_dir}/*.o")
 
-    for file in os.listdir(stdlib_path):
+    for file in os.listdir(stdlib_dir):
         if file.endswith(".o"):
-            os.remove(file)
+            o_path = os.path.join(stdlib_dir, file)
+            os.remove(o_path)
 
 
 def transpile_based(based_path, lexer, parser):
@@ -68,15 +73,16 @@ def transpile_based(based_path, lexer, parser):
             result = f"#include <array.h>\n#include <stdlib.h>\n{result}"
 
         file.write(result)
-        subprocess.run(["clang-format", "-i", c_path])
+
+    subprocess.run(["clang-format", "-i", c_path])
 
     for include in parser.c_includes:
-        include_path = os.path.join(os.path.dirname(based_path), include)
+        include_dir = os.path.join(os.path.dirname(based_path), include)
         include_basename = os.path.basename(include)
         dist_path = os.path.join("dist", include_basename)
         if os.path.exists(dist_path):
             os.remove(dist_path)
-        os.system(f"cp {include_path} {dist_path}")
+        os.system(f"cp {include_dir} {dist_path}")
 
     if len(parser.based_includes) > 0:
         include = parser.based_includes.pop()

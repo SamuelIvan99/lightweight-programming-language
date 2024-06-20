@@ -1,0 +1,41 @@
+use <stdio.h>
+use <stdlib.h>
+use <file_stream.h>
+use <sfile_stream.h>
+
+main():i16 {
+    let max_size:i16 = 10000;
+
+    srand(10);
+
+    let writer:StreamWriter = file_writer("texts/bubble_sort_based.txt");
+    let buffer[15]:char;
+
+    let arrayS[10000]:i16;
+
+    writer << "Unsorted: \n";
+
+    for(let i:i16 = 0; i < max_size ; i = i + 1){
+        arrayS[i] = rand();
+        sprintf(buffer, "%d \n", arrayS[i]);
+        writer << buffer;
+    }
+
+    writer << "\n";
+    
+    for(let i:i16 = 0; i < max_size - 1; i = i + 1){
+        for(let j:i16 = 0; j < max_size - i - 1; j = j + 1){
+            if(arrayS[j + 1] < arrayS[j]){
+                let temp:i16 = arrayS[j];
+                arrayS[j] = arrayS[j + 1];
+                arrayS[j + 1] = temp;
+            }
+        }
+    }   
+    writer << "\n\n\n\n";
+    writer << "Sorted: \n";
+    for(let i:i16 = 0; i < max_size ; i = i + 1){
+        sprintf(buffer, "%d \n", arrayS[i]);
+        writer << buffer;
+    } 
+}

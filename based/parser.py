@@ -28,30 +28,31 @@ class BasedParser(Parser):
     @_("globall")
     def globals(self, p):
         return f"{p.globall}"
-    @_("function")
-    def globall(self, p):
-        return f"{p.function}"
     @_("include")
     def globall(self, p):
         return f"{p.include}"
+    @_("function")
+    def globall(self, p):
+        return f"{p.function}"
     @_("scalar_declaration_init END")
     def globall(self, p):
         return f"{p.scalar_declaration_init};"
     #endregion
 
     #region includes
-    @_("USE SYSTEM_VALUE")
-    def include(self, p):
-        return f"#include {p.SYSTEM_VALUE}\n"
     @_("USE STRING_VALUE")
     def include(self, p):
         file_name = p.STRING_VALUE.replace("\"", "")
+        file_name = os.path.basename(file_name)
         root, extension = os.path.splitext(file_name)
         if extension == ".based":
             self.based_includes.add(file_name)
         elif extension == ".c":
             self.c_includes.add(file_name)
         return f"#include \"{file_name}\"\n"
+    @_("USE SYSTEM_VALUE")
+    def include(self, p):
+        return f"#include {p.SYSTEM_VALUE}\n"
     #endregion
 
     #region function
@@ -317,14 +318,7 @@ class BasedParser(Parser):
         self.array_bindings.bind(p.ID, mapping)
 
         values = p.array_init
-
-        array_declaration = f"""
-            Array {p.ID} = 
-            {{
-                .value = calloc({p.ID}.size ,sizeof({mapping})),
-                .size = {p.INTEGRAL_VALUE}
-            }};
-        """
+        array_declaration = f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc({p.ID}.size ,sizeof({mapping}));"
         array_init = ";".join([
             f"(({mapping}*)getElement({p.ID},{i}))[{i}]={values[i]}"
             for i in range(len(values))
@@ -344,13 +338,7 @@ class BasedParser(Parser):
 
         values = p.array_init
 
-        array_declaration = f"""
-            Array {p.ID} = 
-            {{
-                .value = calloc({p.ID}.size ,sizeof({mapping})),
-                .size = {len(values)}
-            }};
-        """
+        array_declaration = f"Array {p.ID};{p.ID}.size={p.INTEGRAL_VALUE};{p.ID}.value=calloc({p.ID}.size ,sizeof({mapping}));"
         array_init = ";".join([
             f"(({mapping}*)getElement({p.ID},{i}))[{i}]={values[i]}"
             for i in range(len(values))
@@ -496,7 +484,11 @@ class BasedParser(Parser):
         if not result:
             print(f"ERROR: variable '{p.ID}' not in scope")
             exit(1)
-        return f"{p.ID}"
+
+        if scalar_result:
+            return f"{p.ID}"
+        elif array_result:
+            return f"{p.ID}.value"
     #endregion
 
     #region type

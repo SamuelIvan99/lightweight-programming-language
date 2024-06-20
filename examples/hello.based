@@ -1,0 +1,8 @@
+use <stdio.h>
+
+main():i16 {
+	let name[100]:char = {'C', 'H', 'A', 'D', '\0'};
+
+	printf("Hello %s!\n", name);
+	return 0;
+}

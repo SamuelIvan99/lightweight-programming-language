@@ -24,7 +24,7 @@ class BasedLexer(Lexer):
     BOOL_VALUE     = r"\btrue\b|\bfalse\b"
     CHAR_VALUE     = r"\'(.|\\0|\\n)\'"
     STRING_VALUE   = r"\"[^\"]*\""
-    SYSTEM_VALUE   = r"<[^\"]*>"
+    SYSTEM_VALUE   = r"<[^\"<>]*>"
 
     WHILE    = r"\bwhile\b"
     FOR      = r"\bfor\b"
